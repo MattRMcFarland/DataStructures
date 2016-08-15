@@ -14,27 +14,6 @@ typedef struct _List {
 	void * (*copier)(void *);
 } _List;
 
-/* --- internal list functions --- */
-
-_List * _MakeEmptyList() {
-	_List * list = (_List *)calloc(1,sizeof(_List));
-	assert(list);
-	return list;
-}
-
-void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
-	if (!list || !_NodeApplyFunc)
-		return;
-
-	_Node * head = list->head;
-	_Node * past;
-	while (head) {
-		past = head;
-		head = head->next;
-		_NodeApplyFunc(past);
-	}
-}
-
 /* --- internal node functions --- */
 
 _Node * _MakeEmptyNode() {
@@ -61,10 +40,10 @@ void _DestroyNode(_Node * node) {
 // unsafe! doesn't check list head and tail correctness
 _Node * _SpliceOutNode(_Node * node) {
 	if (!node)
-		return;
+		return NULL;
 
 	if (node->prev != NULL)
-		prev->next = node->next;
+		node->prev->next = node->next;
 
 	if (node->next != NULL)
 		node->next->prev = node->prev;
@@ -74,7 +53,7 @@ _Node * _SpliceOutNode(_Node * node) {
 
 _Node * _SafeSpliceOutNode(_List * list, _Node * node) {
 	if (!list || !node)
-		return;
+		return NULL;
 
 	node = _SpliceOutNode(node);
 
@@ -82,16 +61,31 @@ _Node * _SafeSpliceOutNode(_List * list, _Node * node) {
 		list->head = node->next;
 
 	if (node == list->tail)
-		list->tail = node->tail;
+		list->tail = node->prev;
 
 	return node;
 }
 
-/* --- internal iterator --- */
+/* --- internal list functions --- */
 
-typedef struct _ListIterator {
-	_Node * current;
-} _ListIterator;
+_List * _MakeEmptyList() {
+	_List * list = (_List *)calloc(1,sizeof(_List));
+	assert(list);
+	return list;
+}
+
+void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
+	if (!list || !_NodeApplyFunc)
+		return;
+
+	_Node * head = list->head;
+	_Node * past;
+	while (head) {
+		past = head;
+		head = head->next;
+		_NodeApplyFunc(past);
+	}
+}
 
 /* --- external --- */
 
@@ -138,17 +132,105 @@ int AppendToList(List * list, void * element) {
 	return ++l->size;
 }
 
-void * RemoveFromList(List * list, ListSearchFunc, void * key) {
-	if (!list || !ListSearchFunc)
-		return NULL;
+void RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
+	if (!list || !searchFunc)
+		return;
 
 	_List * l = (_List *)list;
 	_Node * probe = l->head;
 	_Node * removed;
+
 	while (probe) {
-		if (ListSearchFunc(probe->data, key) == 1) {
-			removed = _SafeSpliceOutNode(probe);
+		if (searchFunc(probe->data, key) == 1) {
+			removed = _SafeSpliceOutNode(l, probe);
 		}
 		removed = probe = probe->next;
+		_DestroyNode(removed);
 	}
 }
+
+void * GetFromList(List * list, ListSearchFunc searchFunc, void * key) {
+	if (!list || !searchFunc)
+		return NULL;
+
+	_List * l = (_List *)list;
+	_Node * probe = l->head;
+	while (probe) {
+		if (searchFunc(probe->data, key) == 1) {
+			return probe->data;
+		}
+		probe = probe->next;
+	}
+
+	return NULL;
+}
+
+void ClearList(List * list) {
+	if (!list)
+		return;
+
+	_List * l = (_List *)list;
+	
+	_ListApply(l, _DestroyNode);
+	l->head = l->tail = NULL;
+	l->size = 0;
+	return;
+}
+
+void ListApply(List * list, ListApplyFunc toApply) {
+	if (!list || !toApply)
+		return;
+
+	_List * l = (_List *)list;
+	_Node * applier = l->head;
+	while (applier) {
+		toApply(applier->data);
+		applier = applier->next;
+	}
+}
+
+/* --- external data iterator --- */
+
+typedef struct _ListIterator {
+	_Node * current;
+} _ListIterator;
+
+ListIterator * MakeListIterator(List * list) {
+	if (!list)
+		return NULL;
+
+	_List * l = (_List *)list;
+	_ListIterator * iterator = (_ListIterator *)calloc(1,sizeof(_ListIterator));
+	assert(iterator);
+	iterator->current = l->head;
+	return (ListIterator *)iterator;
+}
+
+void DestroyIterator(ListIterator * iterator) {
+	if (!iterator)
+		return;
+	_ListIterator * i = (_ListIterator *)iterator;
+	free(i);
+}
+
+void * GetCurrentFromIterator(ListIterator * iterator) {
+	if (!iterator)
+		return NULL;
+
+	_ListIterator * i = (_ListIterator *)iterator;
+	return (i->current != NULL) ? i->current->data : NULL;
+}
+
+void * AdvanceAndGetIterator(_ListIterator * iterator) {
+	if (!iterator)
+		return NULL;
+
+	_ListIterator * i = (_ListIterator *)iterator;
+	if (i->current != NULL) {
+		i->current = i->current->next;
+	}
+
+	return (i->current != NULL) ? i->current->data : NULL;
+}
+
+
