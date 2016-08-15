@@ -58,9 +58,40 @@ void _DestroyNode(_Node * node) {
 	free(node);
 }
 
-// void _NodeApply(void (*toApplyFunc)(_Node *), _Node * applyTo) {
-// 	toApplyFunc(applyTo);
-// }
+// unsafe! doesn't check list head and tail correctness
+_Node * _SpliceOutNode(_Node * node) {
+	if (!node)
+		return;
+
+	if (node->prev != NULL)
+		prev->next = node->next;
+
+	if (node->next != NULL)
+		node->next->prev = node->prev;
+
+	return node;
+}
+
+_Node * _SafeSpliceOutNode(_List * list, _Node * node) {
+	if (!list || !node)
+		return;
+
+	node = _SpliceOutNode(node);
+
+	if (node == list->head)
+		list->head = node->next;
+
+	if (node == list->tail)
+		list->tail = node->tail;
+
+	return node;
+}
+
+/* --- internal iterator --- */
+
+typedef struct _ListIterator {
+	_Node * current;
+} _ListIterator;
 
 /* --- external --- */
 
@@ -85,15 +116,15 @@ void DestroyList(List * list) {
 int ListSize(List * list) {
 	if (!list)
 		return -1;
+
 	_List * l = (_List *)list;
 	return l->size;
 }
 
 int AppendToList(List * list, void * element) {
-	if (!list || !element) {
+	if (!list || !element)
 		return -1;
-	}
-
+	
 	_List * l = (_List *)list;
 	_Node * tail = l->tail;
 	void * copy = l->copier(element);
@@ -105,4 +136,19 @@ int AppendToList(List * list, void * element) {
 	}
 
 	return ++l->size;
+}
+
+void * RemoveFromList(List * list, ListSearchFunc, void * key) {
+	if (!list || !ListSearchFunc)
+		return NULL;
+
+	_List * l = (_List *)list;
+	_Node * probe = l->head;
+	_Node * removed;
+	while (probe) {
+		if (ListSearchFunc(probe->data, key) == 1) {
+			removed = _SafeSpliceOutNode(probe);
+		}
+		removed = probe = probe->next;
+	}
 }

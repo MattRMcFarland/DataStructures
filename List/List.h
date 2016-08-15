@@ -16,11 +16,18 @@ int ListSize(List * list);
 // returns new size of list, -1 if error occured. 
 int AppendToList(List * list, void * element);
 
-void * RemoveFromList(List * list, ListSearchFunc, void * key);
+// will remove *all* instances of `key`
+void RemoveFromList(List * list, ListSearchFunc, void * key);
+
 void * GetFromList(List * list, ListSearchFunc, void * key);
 void ListApply(List * list, ListApplyFunc * toApply);
 void ClearList(List * list);
 
 void PrintList(List * list);
+
+/* --- iterator --- */
+typedef struct ListIterator ListIterator;
+
+
 
 #endif
