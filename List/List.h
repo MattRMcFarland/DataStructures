@@ -8,7 +8,7 @@ typedef void (*ListApplyFunc)(void * element);
 typedef struct List List;
 
 List * NewList(CopyInFunc copier);
-void DestroyList();
+void DestroyList(List * list);
 
 // returns -1 on error
 int ListSize(List * list);
