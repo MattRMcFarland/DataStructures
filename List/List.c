@@ -166,6 +166,14 @@ void * GetFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	return NULL;
 }
 
+int ListContains(List * list, ListSearchFunc searchFunc, void * key) {
+	if (!list || !searchFunc)
+		return 0;
+
+	return (GetFromList(list, searchFunc, key) != NULL) ? 1 : 0;
+}
+
+
 void ClearList(List * list) {
 	if (!list)
 		return;

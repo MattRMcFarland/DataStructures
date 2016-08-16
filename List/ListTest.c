@@ -73,9 +73,12 @@ int main() {
 	shouldBe_Int(ListSize(list), size);
 	PrintList(list, printStr);
 
-	shouldBe_Str(GetFromList(list, &strIsEqual, "d"), NULL);
-	shouldBe_Str(GetFromList(list, &strIsEqual, "e"), NULL);
-	shouldBe_Str(GetFromList(list, &strIsEqual, "a"), NULL);
+	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "d"), NULL);
+	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "e"), NULL);
+	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "a"), NULL);
+
+	shouldBe_Int(ListContains(list, &strIsEqual, "c"), 1);
+	shouldBe_Int(ListContains(list, &strIsEqual, "a"), 0);
 
 	ClearList(list);
 	shouldBe_Int(ListSize(list), 0);
