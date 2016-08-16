@@ -1,9 +1,9 @@
 # TestingHelper
-These are some unit test helper functions.
+These are some unit test helper functions. By using various `shouldBe` functions, one can ensure that unit tests pass. If a `shouldBe` function call fails, an assertion will fail and the test program will not terminate nicely.
 
 ## How to use
 - `shouldBe_Int(int testVal, int targetVal)` compares a `testVal` and a `targetVal`. If the integer values mismatch, an assertion will fail and the test program will terminate.
-- `shouldBe_Str(char * testStr, char * targetStr)` compares two strings and exit if the strings are not equal (as indicated by `strcmp` returning 0). Two NULL arguments will be considered equal, but one NULL argument will cause the assertion to fail.
+- `shouldBe_Str(char * testStr, char * targetStr)` compares two strings and exits if the strings are not equal (as indicated by `strcmp` returning 0). Two NULL arguments will be considered equal, but one NULL argument will cause the assertion to fail.
 - CustomTester: TODO
 
 ## How to make
