@@ -138,14 +138,15 @@ void RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
 
 	_List * l = (_List *)list;
 	_Node * probe = l->head;
-	_Node * removed;
+	_Node * next;
 
 	while (probe) {
+		next = probe->next;
 		if (searchFunc(probe->data, key) == 1) {
-			removed = _SafeSpliceOutNode(l, probe);
-		}
-		removed = probe = probe->next;
-		_DestroyNode(removed);
+			_DestroyNode(_SafeSpliceOutNode(l, probe));
+			l->size--;
+		} 
+		probe = next;
 	}
 }
 
@@ -189,6 +190,15 @@ void ListApply(List * list, ListApplyFunc toApply) {
 	}
 }
 
+void PrintList(List * list, ListApplyFunc elementPrinter) {
+	if (!list || !elementPrinter)
+		return;
+	printf("Printing List --\n");
+	ListApply(list, elementPrinter);
+	printf("\n\n");
+}
+
+
 /* --- external data iterator --- */
 
 typedef struct _ListIterator {
@@ -206,7 +216,7 @@ ListIterator * MakeListIterator(List * list) {
 	return (ListIterator *)iterator;
 }
 
-void DestroyIterator(ListIterator * iterator) {
+void DestroyListIterator(ListIterator * iterator) {
 	if (!iterator)
 		return;
 	_ListIterator * i = (_ListIterator *)iterator;
@@ -221,7 +231,7 @@ void * GetCurrentFromIterator(ListIterator * iterator) {
 	return (i->current != NULL) ? i->current->data : NULL;
 }
 
-void * AdvanceAndGetIterator(_ListIterator * iterator) {
+void * AdvanceAndGetFromIterator(ListIterator * iterator) {
 	if (!iterator)
 		return NULL;
 

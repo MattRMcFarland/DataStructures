@@ -14,6 +14,7 @@ void DestroyList(List * list);
 int ListSize(List * list);
 
 // returns new size of list, -1 if error occured. 
+// cannot take NULL elements
 int AppendToList(List * list, void * element);
 
 void * GetFromList(List * list, ListSearchFunc, void * key);
@@ -24,6 +25,8 @@ void RemoveFromList(List * list, ListSearchFunc, void * key);
 void ClearList(List * list);
 
 void ListApply(List * list, ListApplyFunc toApply);
+
+void PrintList(List * list, ListApplyFunc elementPrinter);
 
 /* --- iterator --- */
 typedef struct ListIterator ListIterator;

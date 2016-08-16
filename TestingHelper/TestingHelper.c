@@ -10,6 +10,11 @@ void shouldBe_Int(int testingVal, int targetVal) {
 }
 
 void shouldBe_Str(char * testingStr, char * targetStr) {
+	if (testingStr == NULL && targetStr == NULL)
+		return;
+	else if (!testingStr || !targetStr)
+		assert(0);
+	
 	assert(strcmp(testingStr, targetStr) == 0);
 }
 

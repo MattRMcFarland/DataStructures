@@ -1,77 +1,115 @@
 #include <stdio.h>
+#include <string.h>
 #include "List.h"
 #include "../TestingHelper/TestingHelper.h"
+
+void * myStrdup(void * element) {
+	return (void *)strdup((char *)element);
+}
+
+int strIsEqual(void * testStr, void * targetStr) {
+	char * testS = (char *)testStr;
+	char * targetS = (char *)targetStr;
+
+	if (testS == NULL && targetS == NULL)
+		return 1;
+	else if (!testS || !targetS)
+		return 0;
+
+	return (strcmp(testS, targetS) == 0) ? 1 : 0;
+}
+
+void printStr(void * str) {
+	if (!str)
+		return;
+	printf("%s, ", (char *)str);
+}
+
+void squasher(void * string) {
+	if (!string)
+		return;
+	char * s = (char *)string;
+	if (strlen(s) > 0)
+		s[0] = '_';
+}
 
 int main() {
 	printf("\nRunning List Test...\n");
 
 	/*
-	 * vanilla append and contains tests
+	 * size, append, contains, remove tests
 	 */
 
-	//StringList * list = lNew();
+	List * list = NewList(&myStrdup);
 
-	// lPrint(list);
+	shouldBe_Int(ListSize(list), 0);
+	int size = 0;
 
-	// char forLater[] = "find me!";
+	shouldBe_Int(AppendToList(list, "a"), ++size);
+	shouldBe_Int(AppendToList(list, "b"), ++size);
+	shouldBe_Int(AppendToList(list, "c"), ++size);
+	shouldBe_Int(AppendToList(list, "d"), ++size);
+	shouldBe_Int(AppendToList(list, "d"), ++size);
+	shouldBe_Int(AppendToList(list, "e"), ++size);
 
-	// int appendTests = 5;
-	// char * testVals[] = {"First!", "Second!", "Third!", "Fourth!", "Fifth!"};
+	shouldBe_Int(AppendToList(list, NULL), -1);
+	shouldBe_Int(AppendToList(NULL, "a"), -1);
 
-	// shouldBe_Int(lSize(list), 0);
+	PrintList(list, printStr);
 
-	// for (int i = 0; i < appendTests; i++) {
-	// 	shouldBe_Int(lAppend(list, testVals[i]), i + 1);
-	// }
+	shouldBe_Str(GetFromList(list, &strIsEqual, "c"), "c");
+	shouldBe_Str(GetFromList(list, &strIsEqual, "z"), NULL);
 
-	// shouldBe_Int(lAppend(NULL, "blah"), -1);
-	// shouldBe_Int(lAppend(list, NULL), -1);
+	RemoveFromList(list, &strIsEqual, "a");
+	shouldBe_Int(ListSize(list), --size);
+	PrintList(list, printStr);
 
-	// shouldBe_Int(lAppend(list, forLater), 6);
-	// shouldBe_Int(lContains(list, forLater), 1);
-	// shouldBe_Int(lContains(list, "not here"), 0);
+	RemoveFromList(list, &strIsEqual, "e");
+	shouldBe_Int(ListSize(list), --size);
+	PrintList(list, printStr);
 
-	// shouldBe_Int(lSize(list), 6);
+	RemoveFromList(list, &strIsEqual, "d");
+	size = size - 2;
+	shouldBe_Int(ListSize(list), size);
+	PrintList(list, printStr);
 
-	// lPrint(list);
+	shouldBe_Str(GetFromList(list, &strIsEqual, "d"), NULL);
+	shouldBe_Str(GetFromList(list, &strIsEqual, "e"), NULL);
+	shouldBe_Str(GetFromList(list, &strIsEqual, "a"), NULL);
 
-	// /* 
-	//  * compare lists
-	//  */
+	ClearList(list);
+	shouldBe_Int(ListSize(list), 0);
 
-	// StringList * list2 = lNew();
-	// for (int i = 0; i < appendTests; i++) {
-	// 	shouldBe_Int(lAppend(list2, testVals[i]), i + 1);
-	// }
+	/*
+	 * testing apply
+	 */
 
-	// shouldBe_Int(lAreEqual(list, list2), 0);
+	AppendToList(list, "cat");
+	AppendToList(list, "dog");
+	AppendToList(list, "hamster");
+	AppendToList(list, "cheetah");
+	PrintList(list, &printStr);
+	ListApply(list, &squasher);
+	PrintList(list, &printStr);
 
-	// shouldBe_Int(lAppend(list2, forLater), 6);
+	/*
+	 * testing iterator
+	 */
 
-	// CustomTester * listTester = MakeCustomTester(&lAreEqual);
-	// shouldBe_Custom(listTester, list, list2);
-	// DestroyCustomTester(listTester);
-	// lDestroy(list2);
+	ListIterator * iterator = MakeListIterator(list);
+	shouldBe_Str((char *)GetCurrentFromIterator(iterator), "_at");
+	shouldBe_Str((char *)AdvanceAndGetFromIterator(iterator), "_og");
+	shouldBe_Str((char *)AdvanceAndGetFromIterator(iterator), "_amster");
+	shouldBe_Str((char *)AdvanceAndGetFromIterator(iterator), "_heetah");
+	shouldBe_Str((char *)AdvanceAndGetFromIterator(iterator), NULL);
+	DestroyListIterator(iterator);
 
-	// /*
-	//  * iterator tests
-	//  */
+	/*
+	 * clean up!
+	 */
 
-	// StringListIterator * iterator = lNewIterator(list);
+	DestroyList(list);
 
-	// for (int i = 0; i < appendTests; i++) {
-	// 	shouldBe_Str(iGet(iterator),testVals[i]);
-	// 	shouldBe_Int(iHasNext(iterator), 1);
-	// 	iAdvance(iterator);
-	// }
-
-	// shouldBe_Str(iGet(iterator), forLater);
-	// shouldBe_Int(iHasNext(iterator), 0);
-
-	// lDestroyIterator(iterator);
-	// lDestroy(list);
-
-	// printf("StringList Tests pass!\n\n");
-
+	printf("\nList Tests Pass!\n");
 	return 0;
 }
