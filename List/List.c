@@ -56,6 +56,7 @@ _Node * _SafeSpliceOutNode(_List * list, _Node * node) {
 		return NULL;
 
 	node = _SpliceOutNode(node);
+	list->size--;
 
 	if (node == list->head)
 		list->head = node->next;
@@ -144,7 +145,6 @@ void RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
 		next = probe->next;
 		if (searchFunc(probe->data, key) == 1) {
 			_DestroyNode(_SafeSpliceOutNode(l, probe));
-			l->size--;
 		} 
 		probe = next;
 	}
@@ -173,6 +173,51 @@ int ListContains(List * list, ListSearchFunc searchFunc, void * key) {
 	return (GetFromList(list, searchFunc, key) != NULL) ? 1 : 0;
 }
 
+void * TakeHead(List * list) {
+	if (!list)
+		return NULL;
+
+	_List * l = (_List *)list;
+	void * data = NULL;
+
+	if (l->head) {
+		_Node * taken = _SafeSpliceOutNode(l, l->head);
+		data = l->copier(taken->data);
+		_DestroyNode(taken);
+	} 
+	return (data != NULL) ? data : NULL;
+}
+
+void * TakeTail(List * list) {
+	if (!list)
+		return NULL;
+
+	_List * l = (_List *)list;
+	void * data = NULL;
+
+	if (l->tail) {
+		_Node * taken = _SafeSpliceOutNode(l, l->tail);
+		data = l->copier(taken->data);
+		_DestroyNode(taken);
+	} 
+	return (data != NULL) ? data : NULL;
+}
+
+void * PeekHead(List * list) {
+	if (!list)
+		return NULL;
+
+	_List * l = (_List *)list;
+	return (l->head != NULL) ? l->head->data : NULL;
+}
+
+void * PeekTail(List * list) {
+	if (!list)
+		return NULL;
+
+	_List * l = (_List *)list;
+	return (l->tail != NULL) ? l->tail->data : NULL;
+}
 
 void ClearList(List * list) {
 	if (!list)

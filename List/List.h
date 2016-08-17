@@ -39,6 +39,14 @@ void RemoveFromList(List * list, ListSearchFunc, void * key);
 // returns 1 if list contains an element that matches `key`
 int ListContains(List * list, ListSearchFunc , void * key);
 
+// returns data element -- caller is responsible for returned memory reference
+void * TakeHead(List * list);
+void * TakeTail(List * list);
+
+// returns help data element -- do not free!
+void * PeekHead(List * list);
+void * PeekTail(List * list);
+
 void ClearList(List * list);
 void ListApply(List * list, ListApplyFunc toApply);
 void PrintList(List * list, ListApplyFunc elementPrinter);

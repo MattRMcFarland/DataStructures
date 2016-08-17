@@ -1,10 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "List.h"
 #include "../TestingHelper/TestingHelper.h"
 
-void * myStrdup(void * element) {
-	return (void *)strdup((char *)element);
+/* --- string list helpers --- */
+
+void * myStrdup(void * string) {
+	return (void *)strdup((char *)string);
 }
 
 int strIsEqual(void * testStr, void * targetStr) {
@@ -32,6 +36,44 @@ void squasher(void * string) {
 	if (strlen(s) > 0)
 		s[0] = '_';
 }
+
+/* --- integer list helpers --- */
+
+void * myIntDup(void * integer) {
+	if (!integer)
+		return NULL;
+	int * copy = (int *)calloc(1,sizeof(int));
+	assert(copy);
+	memcpy(copy, integer, sizeof(int));
+	return copy;
+}
+
+int myIntCmp(void * testInteger, void * targetInteger) {
+	if (testInteger == NULL && targetInteger == NULL)
+		return 1;
+	else if (!testInteger || !targetInteger)
+		return 0;
+
+	return *(int *)testInteger == *(int *)targetInteger;
+}
+
+void printInt(void * integer) {
+	if (!integer)
+		return;
+	printf("%d, ", *(int *)integer);
+}
+
+void incInt(void * integer) {
+	if (!integer)
+		return;
+	(*(int *)integer)++;
+}
+
+/* 
+ * ##							 ##
+ * ### test suite ###
+ * ##							 ##
+ */
 
 int main() {
 	printf("\nRunning List Test...\n");
@@ -82,6 +124,41 @@ int main() {
 
 	ClearList(list);
 	shouldBe_Int(ListSize(list), 0);
+
+	/*
+	 * testing head and tail functions
+	 */
+
+	int arr[] = {1,3,5,7,9,11};
+	int HTsize = sizeof(arr) / sizeof(int);
+
+	List * HTlist = NewList(&myIntDup);
+	for (int i = 0; i < HTsize; i++) {
+		shouldBe_Int(AppendToList(HTlist, &arr[i]), i + 1);
+	}
+	PrintList(HTlist, &printInt);
+
+	shouldBe_Int(*(int *)PeekHead(HTlist), 1);
+	shouldBe_Int(*(int *)PeekTail(HTlist), 11);
+
+	int * head = (void*)TakeHead(HTlist);
+	shouldBe_Int(*head, 1);
+	shouldBe_Int(*(int *)PeekHead(HTlist), 3);
+	shouldBe_Int(ListSize(HTlist), --HTsize);
+	free(head);
+
+	int * tail = (void*)TakeTail(HTlist);
+	shouldBe_Int(*tail, 11);
+	shouldBe_Int(*(int *)PeekTail(HTlist), 9);
+	shouldBe_Int(ListSize(HTlist), --HTsize);
+	free(tail);
+
+	PrintList(HTlist, &printInt);
+
+	ListApply(HTlist, &incInt);
+	PrintList(HTlist, &printInt);
+
+	DestroyList(HTlist);
 
 	/*
 	 * testing apply
