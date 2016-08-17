@@ -158,6 +158,12 @@ int main() {
 	ListApply(HTlist, &incInt);
 	PrintList(HTlist, &printInt);
 
+	ClearList(HTlist);
+	shouldBe_Int((int)PeekHead(HTlist), (int)NULL);
+	shouldBe_Int((int)PeekTail(HTlist), (int)NULL);
+	shouldBe_Int((int)TakeHead(HTlist), (int)NULL);
+	shouldBe_Int((int)TakeTail(HTlist), (int)NULL);
+
 	DestroyList(HTlist);
 
 	/*
