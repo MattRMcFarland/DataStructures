@@ -3,11 +3,12 @@
 
 typedef struct HashMap HashMap;
 
+typedef void * (*CopyFunc)(void * element);
 typedef int (*HashFunc)(void * element);
 typedef int (*AreEqualFunc)(void * element1, void * element2);
 typedef int (*HashMapApplyFunc)(void * element);
 
-HashMap * NewHashMap(HashFunc hf, AreEqualFunc aef);
+HashMap * NewHashMap(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int total);
 void DestroyHashMap(HashMap * hashmap);
 
 int HashMapSize(HashMap * hashmap);
