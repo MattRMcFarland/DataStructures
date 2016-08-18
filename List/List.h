@@ -26,7 +26,7 @@ void DestroyList(List * list);
 // returns -1 on error
 int ListSize(List * list);
 
-// returns new size of list, -1 if error occured. 
+// returns new size of list, -1 if error occurred. 
 // cannot take NULL elements
 int AppendToList(List * list, void * element);
 

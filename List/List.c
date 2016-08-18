@@ -121,7 +121,7 @@ void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
 	}
 }
 
-/* --- external --- */
+/* --- external functions --- */
 
 List * NewList(void * (*CopyInFunc)(void *)) {
 	_List * new = _MakeEmptyList();
