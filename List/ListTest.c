@@ -69,6 +69,17 @@ void incInt(void * integer) {
 	(*(int *)integer)++;
 }
 
+List * MakeIntListFromArr(int arr[], int size) {
+	if (!arr || size < 0)
+		return NULL;
+
+	List * new = NewList(&myIntDup);
+	for (int i = 0; i < size; i++) {
+		AppendToList(new,(void *)&arr[i]);
+	}
+	return new;
+}
+
 /* 
  * ##							 ##
  * ### test suite ###
@@ -129,7 +140,7 @@ int main() {
 	 * testing head and tail functions
 	 */
 
-	int arr[] = {1,3,5,7,9,11};
+	int arr[] = {1, 3, 5, 7, 9, 11};
 	int HTsize = sizeof(arr) / sizeof(int);
 
 	List * HTlist = NewList(&myIntDup);
@@ -165,6 +176,64 @@ int main() {
 	shouldBe_Int((int)TakeTail(HTlist), (int)NULL);
 
 	DestroyList(HTlist);
+
+	/*
+	 * testing list concatenation
+	 */
+
+	int leader[] = {1, 2, 3, 4, 5};
+	int trailer[] = {6, 7, 8, 9 , 10};
+
+	List * leaderList = MakeIntListFromArr(leader, sizeof(leader) / sizeof(int));
+	List * trailerList = MakeIntListFromArr(trailer, sizeof(trailer) / sizeof(int));
+
+	List * wholeList = CatLists(leaderList, trailerList);
+	shouldBe_Int(ListSize(wholeList), 10);
+	for (int i = 0; i < 5; i++) {
+		shouldBe_Int(ListContains(wholeList, &myIntCmp, (void *)&leader[i]), 1);
+		shouldBe_Int(ListContains(wholeList, &myIntCmp, (void *)&trailer[i]), 1);
+	}
+
+	PrintList(wholeList, &printInt);
+	DestroyList(wholeList);
+
+	/* -- empty to empty -- */
+	List * empty1 = NewList(&myIntDup);
+	List * empty2 = NewList(&myIntDup);
+	empty1 = CatLists(empty1, empty2);
+	assert(empty1);
+	shouldBe_Int(ListSize(empty1), 0);
+	DestroyList(empty1);
+
+	/* -- filled <- empty -- */
+	int filled[] = {10,20,30,40,50,100};
+	int dummy = 9999;
+
+	List * filled1 = MakeIntListFromArr(filled, sizeof(filled) / sizeof(int));
+	List * empty3 = NewList(&myIntDup);
+	filled1 = CatLists(filled1, empty3);
+	assert(filled1);
+	shouldBe_Int(ListSize(filled1), 6);
+	for (int i = 0; i < 6; i++) {
+		shouldBe_Int(ListContains(filled1, &myIntCmp, (void *)&filled[i]), 1);
+	}
+	shouldBe_Int(AppendToList(filled1, (void *)&dummy), 7);
+	PrintList(filled1, &printInt);
+	DestroyList(filled1);
+
+	/* -- empty <- filled -- */
+	List * empty4 = NewList(&myIntDup);
+	List * filled2 = MakeIntListFromArr(filled, sizeof(filled) / sizeof(int));
+	filled2 = CatLists(empty4, filled2);
+	assert(filled2);
+	shouldBe_Int(ListSize(filled2), 6);
+	for (int i = 0; i < 6; i++) {
+		shouldBe_Int(ListContains(filled2, &myIntCmp, (void *)&filled[i]), 1);
+	}
+	shouldBe_Int(AppendToList(filled2, (void *)&dummy), 7);
+	PrintList(filled2, &printInt);
+	DestroyList(filled2);
+
 
 	/*
 	 * testing apply

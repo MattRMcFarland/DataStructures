@@ -47,6 +47,9 @@ void * TakeTail(List * list);
 void * PeekHead(List * list);
 void * PeekTail(List * list);
 
+// claims list2!
+List * CatLists(List * list1, List * list2);
+
 void ClearList(List * list);
 void ListApply(List * list, ListApplyFunc toApply);
 void PrintList(List * list, ListApplyFunc elementPrinter);

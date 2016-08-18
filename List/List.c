@@ -67,12 +67,45 @@ _Node * _SafeSpliceOutNode(_List * list, _Node * node) {
 	return node;
 }
 
+void _HitchNodes(_Node * caboose, _Node * leader) {
+	if (!caboose || !leader)
+		return;
+
+	caboose->next = leader;
+	leader->prev = caboose;
+}
+
 /* --- internal list functions --- */
 
 _List * _MakeEmptyList() {
 	_List * list = (_List *)calloc(1,sizeof(_List));
 	assert(list);
 	return list;
+}
+
+_List * _SewLists(_List * list1, _List * list2) {
+	if (!list1 || !list2)
+		return NULL;
+
+	if (list1->size > 0) {
+
+		if (list2->size > 0) {
+			list1->size += list2->size;
+			_HitchNodes(list1->tail, list2->head);
+			list1->tail = list2->tail;
+			free(list2);
+			return list1;
+
+		} else {
+			free(list2);
+			return list1;
+		}
+
+	} else {
+		free(list1);
+		return list2;
+	}
+
 }
 
 void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
@@ -218,6 +251,17 @@ void * PeekTail(List * list) {
 	_List * l = (_List *)list;
 	return (l->tail != NULL) ? l->tail->data : NULL;
 }
+
+List * CatLists(List * list1, List * list2) {
+	if (!list1 || !list2)
+		return NULL;
+
+	_List * l1 = (_List *)list1;
+	_List * l2 = (_List *)list2;
+
+	return (List *)_SewLists(l1, l2);
+}
+
 
 void ClearList(List * list) {
 	if (!list)
