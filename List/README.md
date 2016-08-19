@@ -7,6 +7,26 @@ This is a linked-list structure that holds abstracted memory references. You can
 ## How Do I Use It?
 `./ListTest` has some pretty exhuastive example on how to use the list and all the things you can do with it.
 
+```
+void * copyFunc(void * data) {
+	if (!data)
+		return NULL;
+	MyStruct * copy = (MyStruct *)calloc(1,sizeof(MyStruct));
+	assert(copy);
+	return copy;
+}
+```
+
+```
+int myCompareFunc(void * myStruct1, void * myStruct2) {
+	// returns 1 if these two data structures are equal, else returns 0
+}
+```
+
+* Creation: `List * newList = NewList(&copyFunc);`
+* Appending: `AppendToList(newList, (void *)&myData);`
+* Searching: `ListContains(newList, &myCompareFunc, (void *)&myData);`
+* Destruction: `DestroyList(&newList);`
 
 ## How Do I Build It?
 See `./Makefile` for an example of how to make the `List.o` object file and how to link it to executables that rely on it.
@@ -39,3 +59,6 @@ AppendToList(myIntList, (void *)&dummy);
 
 ### Is this threadsafe?
 No! ... Or at least not yet...
+
+### How are you checking memory allocations?
+If any memory allocations fail, an assertion during the creation function fails, and everything breaks. Sorry if you were hoping for a "nicer" failure behavior, but if you're running out of memory, maybe you have bigger problems.

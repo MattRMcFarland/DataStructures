@@ -88,6 +88,7 @@ void * _AppendToList(_List * list, void * element) {
 		return NULL;
 
 	void * copy = list->copier(element);
+	assert(copy);
 	if (list->tail) {
 		list->tail->next = _MakeNode(copy, list->tail, NULL);
 		list->tail = list->tail->next;
