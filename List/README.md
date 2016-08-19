@@ -36,3 +36,6 @@ You can get around this with the following...
 int dummy = 9000;
 AppendToList(myIntList, (void *)&dummy);
 ```
+
+### Is this threadsafe?
+No! ... Or at least not yet...
