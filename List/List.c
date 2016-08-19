@@ -172,15 +172,6 @@ void * AppendToList(List * list, void * element) {
 		return NULL;
 	
 	_List * l = (_List *)list;
-	// void * copy = l->copier(element);
-	// if (l->tail) {
-	// 	l->tail->next = _MakeNode(copy, l->tail, NULL);
-	// 	l->tail = l->tail->next;
-	// } else {
-	// 	l->head = l->tail = _MakeNode(copy, NULL, NULL);
-	// }
-
-	// l->size++;
 	return _AppendToList(l, element);
 }
 
