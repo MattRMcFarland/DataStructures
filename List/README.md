@@ -29,7 +29,7 @@ int myCompareFunc(void * myStruct1, void * myStruct2) {
 * Creation: `List * newList = NewList(&copyFunc);`
 * Appending: `AppendToList(newList, (void *)&myData);`
 * Searching: `ListContains(newList, &myCompareFunc, (void *)&myData);`
-* Destruction: `DestroyList(&newList);`
+* Destruction: `DestroyList(newList);`
 
 ## How Do I Build It?
 See `./Makefile` for an example of how to make the `List.o` object file and how to link it to executables that rely on it.
@@ -48,7 +48,7 @@ List.o: List.c List.h
 ## FAQs and Notes
 ### Claiming Memory -- Who Owns What?
 * Caller is responsible for destroying the list after creation.
-* The caller must claim memory arguments added to the list because the list creates its own copy.
+* When adding items to the list, the caller is responsible for the memory referenced in the argument of the adding function. The list creates a copy of the argument's referenced memory for its internal use. 
 * The caller is reponsible for claiming any memory references returned by the list (EXCEPT FOR THE PEEK AND ITERATOR OPERATIONS -- don't claim those!)
 
 
