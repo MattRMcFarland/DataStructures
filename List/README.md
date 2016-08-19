@@ -12,6 +12,9 @@ void * copyFunc(void * data) {
 	if (!data)
 		return NULL;
 	MyStruct * copy = (MyStruct *)calloc(1,sizeof(MyStruct));
+
+	// replicate the information held in data to the newly created copy 
+
 	assert(copy);
 	return copy;
 }
