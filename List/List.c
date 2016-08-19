@@ -104,25 +104,26 @@ _List * _SewLists(_List * list1, _List * list2) {
 	if (!list1 || !list2)
 		return NULL;
 
+	_List * catted;
 	if (list1->size > 0) {
+		catted = list1;
 
 		if (list2->size > 0) {
 			list1->size += list2->size;
 			_HitchNodes(list1->tail, list2->head);
 			list1->tail = list2->tail;
 			free(list2);
-			return list1;
 
 		} else {
 			free(list2);
-			return list1;
 		}
 
 	} else {
+		catted = list2;
 		free(list1);
-		return list2;
 	}
 
+	return catted;
 }
 
 void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
