@@ -102,16 +102,17 @@ int main() {
 
 	shouldBe_Str(AppendToList(list, "a"), "a");
 	shouldBe_Str(PutListHead(list, "m"), "m");
+	shouldBe_Str(AppendToList(list, "d"), "d");
 	shouldBe_Str(AppendToList(list, "b"), "b");
 	shouldBe_Str(AppendToList(list, "c"), "c");
 	shouldBe_Str(AppendToList(list, "d"), "d");
 	shouldBe_Str(PutListHead(list, "n"), "n");
 	shouldBe_Str(AppendToList(list, "d"), "d");
 	shouldBe_Str(AppendToList(list, "e"), "e");
-	shouldBe_Int(size = ListSize(list), 8);
+	shouldBe_Int(size = ListSize(list), 9);
 
 	List * fullCopy = CopyList(list);
-	shouldBe_Int(ListSize(fullCopy), 8);
+	shouldBe_Int(ListSize(fullCopy), size);
 	PrintList(fullCopy, printStr);
 	DestroyList(emptyCopy);
 	DestroyList(fullCopy);
@@ -121,8 +122,15 @@ int main() {
 
 	PrintList(list, printStr);
 
-	shouldBe_Str(GetFromList(list, &strIsEqual, "c"), "c");
-	shouldBe_Str(GetFromList(list, &strIsEqual, "z"), NULL);
+	shouldBe_Int(ListContains(list, &strIsEqual, "c"), 1);
+	shouldBe_Int(ListContains(list, &strIsEqual, "z"), 0);
+
+	shouldBe_Int(ListCount(list, &strIsEqual, "a"), 1);
+	shouldBe_Int(ListCount(list, &strIsEqual, "d"), 3);
+	shouldBe_Str((char *)ExtractFromList(list, &strIsEqual, "not here"), NULL);
+	shouldBe_Str((char *)ExtractFromList(list, &strIsEqual, "d"), "d");
+	shouldBe_Int(ListSize(list),--size);
+	shouldBe_Int(ListCount(list, &strIsEqual, "d"), 2);
 
 	shouldBe_Int(RemoveFromList(list, &strIsEqual, "a"), 1);
 	shouldBe_Int(ListSize(list), --size);
@@ -139,9 +147,9 @@ int main() {
 
 	shouldBe_Int(RemoveFromList(list, &strIsEqual, "not here"), 0);
 
-	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "d"), NULL);
-	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "e"), NULL);
-	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "a"), NULL);
+	shouldBe_Int(ListContains(list, &strIsEqual, "d"), 0);
+	shouldBe_Int(ListContains(list, &strIsEqual, "e"), 0);
+	shouldBe_Int(ListContains(list, &strIsEqual, "a"), 0);
 
 	shouldBe_Int(ListContains(list, &strIsEqual, "c"), 1);
 	shouldBe_Int(ListContains(list, &strIsEqual, "a"), 0);

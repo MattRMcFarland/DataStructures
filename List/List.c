@@ -212,7 +212,7 @@ int RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	return removed;
 }
 
-void * GetFromList(List * list, ListSearchFunc searchFunc, void * key) {
+void * ExtractFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
 		return NULL;
 
@@ -220,6 +220,7 @@ void * GetFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	_Node * probe = l->head;
 	while (probe) {
 		if (searchFunc(probe->data, key) == 1) {
+			probe = _SafeSpliceOutNode(l, probe);
 			return probe->data;
 		}
 		probe = probe->next;
@@ -230,10 +231,35 @@ void * GetFromList(List * list, ListSearchFunc searchFunc, void * key) {
 
 int ListContains(List * list, ListSearchFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
-		return 0;
+		return -1;
 
-	return (GetFromList(list, searchFunc, key) != NULL) ? 1 : 0;
+	_List * l = (_List *)list;
+	_Node * probe = l->head;
+	while (probe) {
+		if (searchFunc(probe->data, key) == 1) {
+			return 1;
+		}
+		probe = probe->next;
+	}
+	return 0;
 }
+
+int ListCount(List * list, ListSearchFunc searchFunc, void * key) {
+	if (!list || !searchFunc)
+		return -1;
+
+	_List * l = (_List *)list;
+	_Node * probe = l->head;
+	int count = 0;
+	while (probe) {
+		if (searchFunc(probe->data, key) == 1) {
+			count++;
+		}
+		probe = probe->next;
+	}
+	return count;
+}
+
 
 void * TakeHead(List * list) {
 	if (!list)
