@@ -26,15 +26,17 @@ void DestroyList(List * list);
 // returns -1 on error
 int ListSize(List * list);
 
-// returns new size of list, -1 if error occurred. 
+// returns pointer to new element -- do not claim!
 // cannot take NULL elements
-int AppendToList(List * list, void * element);
+void * AppendToList(List * list, void * element);
+void * PutListHead(List * list, void * element);
 
 // returns a reference of the first matching data element (do not free!)
 void * GetFromList(List * list, ListSearchFunc, void * key);
 
 // will remove *all* instances that match the given `key`
-void RemoveFromList(List * list, ListSearchFunc, void * key);
+// returns number of removed elements, -1 on error
+int RemoveFromList(List * list, ListSearchFunc, void * key);
 
 // returns 1 if list contains an element that matches `key`
 int ListContains(List * list, ListSearchFunc , void * key);
@@ -51,6 +53,7 @@ void * PeekTail(List * list);
 List * CatLists(List * list1, List * list2);
 
 void ClearList(List * list);
+List * CopyList(List * list);
 void ListApply(List * list, ListApplyFunc toApply);
 void PrintList(List * list, ListApplyFunc elementPrinter);
 

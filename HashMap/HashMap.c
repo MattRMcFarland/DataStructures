@@ -14,6 +14,7 @@ typedef struct _HashMap {
 	HashFunc hasher;
 	AreEqualFunc judger;
 
+	int size;
 	int occupied;
 	int total;
 	_Bucket * buckets[];
@@ -22,6 +23,12 @@ typedef struct _HashMap {
 
 int DefaultHashFunction(void * element) {
 	return (int)element
+}
+
+_Bucket * _HashToBucket(_HashMap * hashmap, void * element) {
+	if (!hashmap || !element)
+		return NULL;
+	return hashmap->buckets[hashmap->hasher(element) % hashmap->total];
 }
 
 /* --- internal Bucket --- */
@@ -43,9 +50,15 @@ void _DestroyBucket(_Bucket * bucket) {
 void * _AddToBucket(_Bucket * bucket, void * element) {
 	if (!bucket)
 		return -1;
-	AppendToList(bucket->entries, element);
-	return element; // bad?
+	return AppendToList(bucket->entries, element);
 }
+
+void * _GetFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
+	if (!bucket || judger)
+		return NULL;
+	return GetFromList(bucket->entries, judger, key);
+}
+
 
 
 /* --- internal HashMap --- */
@@ -99,5 +112,35 @@ _HashMap * NewHashMap(
 	AreEqualFunc aef,
 	int total
 ) {
-	return _FillHashMap(_SetEmptyHashMap(_MakeEmptyHashMap(), cf, hf, aef, total));
+	return _FillHashMap(
+		_SetEmptyHashMap(
+			_MakeEmptyHashMap(), cf, hf, aef, total
+			)
+		);
+}
+
+void DestroyHashMap(HashMap * hashmap) {
+	if (!hashmap)
+		return;
+
+	_HashMap * h = (_HashMap *)hashmap;
+	for (int i = 0; i < h->total; i++) {
+		_DestroyBucket(h->buckets[i]);
+	}
+	free(h);
+}
+
+int HashMapSize(HashMap * hashmap) {
+	if (!hashmap)
+		return -1;
+	_HashMap * h = (_HashMap *)hashmap;
+	return h->size;
+}
+
+void * AddToHashMap(HashMap * hashmap, void * element) {
+	if (!hashmap || !element)
+		return NULL;
+
+	_HashMap * h = (_HashMap *)hashmap;
+	return _AddToBucket(_HashToBucket(h, element));
 }

@@ -90,41 +90,54 @@ int main() {
 	printf("\nRunning List Test...\n");
 
 	/*
-	 * size, append, contains, remove tests
+	 * size, put, append, contains, remove, copy tests
 	 */
 
 	List * list = NewList(&myStrdup);
+	List * emptyCopy = CopyList(list);
 
 	shouldBe_Int(ListSize(list), 0);
+	shouldBe_Int(ListSize(emptyCopy), 0);
 	int size = 0;
 
-	shouldBe_Int(AppendToList(list, "a"), ++size);
-	shouldBe_Int(AppendToList(list, "b"), ++size);
-	shouldBe_Int(AppendToList(list, "c"), ++size);
-	shouldBe_Int(AppendToList(list, "d"), ++size);
-	shouldBe_Int(AppendToList(list, "d"), ++size);
-	shouldBe_Int(AppendToList(list, "e"), ++size);
+	shouldBe_Str(AppendToList(list, "a"), "a");
+	shouldBe_Str(PutListHead(list, "m"), "m");
+	shouldBe_Str(AppendToList(list, "b"), "b");
+	shouldBe_Str(AppendToList(list, "c"), "c");
+	shouldBe_Str(AppendToList(list, "d"), "d");
+	shouldBe_Str(PutListHead(list, "n"), "n");
+	shouldBe_Str(AppendToList(list, "d"), "d");
+	shouldBe_Str(AppendToList(list, "e"), "e");
+	shouldBe_Int(size = ListSize(list), 8);
 
-	shouldBe_Int(AppendToList(list, NULL), -1);
-	shouldBe_Int(AppendToList(NULL, "a"), -1);
+	List * fullCopy = CopyList(list);
+	shouldBe_Int(ListSize(fullCopy), 8);
+	PrintList(fullCopy, printStr);
+	DestroyList(emptyCopy);
+	DestroyList(fullCopy);
+
+	shouldBe_Str(AppendToList(list, NULL), NULL);
+	shouldBe_Str(AppendToList(NULL, "a"), NULL);
 
 	PrintList(list, printStr);
 
 	shouldBe_Str(GetFromList(list, &strIsEqual, "c"), "c");
 	shouldBe_Str(GetFromList(list, &strIsEqual, "z"), NULL);
 
-	RemoveFromList(list, &strIsEqual, "a");
+	shouldBe_Int(RemoveFromList(list, &strIsEqual, "a"), 1);
 	shouldBe_Int(ListSize(list), --size);
 	PrintList(list, printStr);
 
-	RemoveFromList(list, &strIsEqual, "e");
+	shouldBe_Int(RemoveFromList(list, &strIsEqual, "e"), 1);
 	shouldBe_Int(ListSize(list), --size);
 	PrintList(list, printStr);
 
-	RemoveFromList(list, &strIsEqual, "d");
+	shouldBe_Int(RemoveFromList(list, &strIsEqual, "d"), 2);
 	size = size - 2;
 	shouldBe_Int(ListSize(list), size);
 	PrintList(list, printStr);
+
+	shouldBe_Int(RemoveFromList(list, &strIsEqual, "not here"), 0);
 
 	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "d"), NULL);
 	shouldBe_Str((char *)GetFromList(list, &strIsEqual, "e"), NULL);
@@ -145,8 +158,9 @@ int main() {
 
 	List * HTlist = NewList(&myIntDup);
 	for (int i = 0; i < HTsize; i++) {
-		shouldBe_Int(AppendToList(HTlist, &arr[i]), i + 1);
+		shouldBe_Int(*(int *)AppendToList(HTlist, &arr[i]), arr[i]);
 	}
+	shouldBe_Int(ListSize(HTlist), HTsize);
 	PrintList(HTlist, &printInt);
 
 	shouldBe_Int(*(int *)PeekHead(HTlist), 1);
@@ -217,7 +231,8 @@ int main() {
 	for (int i = 0; i < 6; i++) {
 		shouldBe_Int(ListContains(filled1, &myIntCmp, (void *)&filled[i]), 1);
 	}
-	shouldBe_Int(AppendToList(filled1, (void *)&dummy), 7);
+	shouldBe_Int(*(int *)AppendToList(filled1, (void *)&dummy), dummy);
+	shouldBe_Int(ListSize(filled1), 7);
 	PrintList(filled1, &printInt);
 	DestroyList(filled1);
 
@@ -230,7 +245,8 @@ int main() {
 	for (int i = 0; i < 6; i++) {
 		shouldBe_Int(ListContains(filled2, &myIntCmp, (void *)&filled[i]), 1);
 	}
-	shouldBe_Int(AppendToList(filled2, (void *)&dummy), 7);
+	shouldBe_Int(*(int *)AppendToList(filled2, (void *)&dummy), dummy);
+	shouldBe_Int(ListSize(filled2), 7);
 	PrintList(filled2, &printInt);
 	DestroyList(filled2);
 

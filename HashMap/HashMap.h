@@ -13,9 +13,12 @@ void DestroyHashMap(HashMap * hashmap);
 
 int HashMapSize(HashMap * hashmap);
 
+// paranoidly returns reference to copied element -- do not claim!
 void * AddToHashMap(HashMap * hashmap, void * element);
-void * GetFromHashMap(HashMap * hashmap, void * element);
-void * RemoveFromHashmap(HashMap * hashmap, void * element);
+void * GetFromHashMap(HashMap * hashmap, void * key);
+
+// removes all instances of 'key' from the HashMap
+void RemoveFromHashmap(HashMap * hashmap, void * key);
 void ClearHashMap(HashMap * hashmap);
 
 typedef struct HashMapIterator HashMapIterator;

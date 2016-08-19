@@ -83,6 +83,23 @@ _List * _MakeEmptyList() {
 	return list;
 }
 
+void * _AppendToList(_List * list, void * element) {
+	if (!list || !element)
+		return NULL;
+
+	void * copy = list->copier(element);
+	if (list->tail) {
+		list->tail->next = _MakeNode(copy, list->tail, NULL);
+		list->tail = list->tail->next;
+	} else {
+		list->head = list->tail = _MakeNode(copy, NULL, NULL);
+	}
+
+	list->size++;
+	return copy;
+}
+
+
 _List * _SewLists(_List * list1, _List * list2) {
 	if (!list1 || !list2)
 		return NULL;
@@ -149,38 +166,58 @@ int ListSize(List * list) {
 	return l->size;
 }
 
-int AppendToList(List * list, void * element) {
+void * AppendToList(List * list, void * element) {
 	if (!list || !element)
-		return -1;
+		return NULL;
 	
 	_List * l = (_List *)list;
-	_Node * tail = l->tail;
+	// void * copy = l->copier(element);
+	// if (l->tail) {
+	// 	l->tail->next = _MakeNode(copy, l->tail, NULL);
+	// 	l->tail = l->tail->next;
+	// } else {
+	// 	l->head = l->tail = _MakeNode(copy, NULL, NULL);
+	// }
+
+	// l->size++;
+	return _AppendToList(l, element);
+}
+
+void * PutListHead(List * list, void * element) {
+	if (!list || !element)
+		return NULL;
+
+	_List * l = (_List *)list;
 	void * copy = l->copier(element);
-	if (tail) {
-		tail->next = _MakeNode(copy, tail, NULL);
-		l->tail = tail->next;
+	if (l->head) {
+		l->head->prev = _MakeNode(copy, NULL, l->head);
+		l->head = l->head->prev;
 	} else {
 		l->head = l->tail = _MakeNode(copy, NULL, NULL);
 	}
 
-	return ++l->size;
+	l->size++;
+	return copy;
 }
 
-void RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
+int RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
-		return;
+		return -1;
 
 	_List * l = (_List *)list;
 	_Node * probe = l->head;
 	_Node * next;
 
+	int removed = 0;
 	while (probe) {
 		next = probe->next;
 		if (searchFunc(probe->data, key) == 1) {
 			_DestroyNode(_SafeSpliceOutNode(l, probe));
+			removed++;
 		} 
 		probe = next;
 	}
+	return removed;
 }
 
 void * GetFromList(List * list, ListSearchFunc searchFunc, void * key) {
@@ -262,6 +299,23 @@ List * CatLists(List * list1, List * list2) {
 	return (List *)_SewLists(l1, l2);
 }
 
+List * CopyList(List * list) {
+	if (!list)
+		return NULL;
+
+	_List * l = (_List *)list;
+	_List * copy = _MakeEmptyList();
+	copy->copier = l->copier;
+	copy->size = 0;
+
+	_Node * probe = l->head;
+	while (probe) {
+		_AppendToList(copy,probe->data);
+		probe = probe->next;
+	}
+
+	return (List *)copy;
+}
 
 void ClearList(List * list) {
 	if (!list)
