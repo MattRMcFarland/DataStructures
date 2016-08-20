@@ -53,7 +53,7 @@ List.o: List.c List.h
 
 
 ### What if I want to pass it a static element with `AppendToList(myIntList, (void *)9000)`?
-Sorry, this doesn't work yet. 9000 is loaded into a register for the function call, and it doesn't live in memory (thanks compiler). In order for the copy function to create the list's copy of the data, the original data needs to live in data.
+Sorry, this doesn't work yet. 9000 is loaded into a register for the function call, and it doesn't live in memory (thanks compiler). In order for the copy function to create the list's copy of the data, the original data needs to live in memory.
 You can get around this with the following...
 ```
 int dummy = 9000;

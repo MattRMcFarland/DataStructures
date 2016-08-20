@@ -4,6 +4,7 @@
 
 #define DEFAULT_TOTAL 1000;
 
+
 typedef struct _Bucket {
 	List * entries;
 } _Bucket;
@@ -33,6 +34,8 @@ _Bucket * _HashToBucket(_HashMap * hashmap, void * element) {
 
 /* --- internal Bucket --- */
 
+typedef void (*BucketApply)(_Bucket * bucket);
+
 _Bucket * _MakeEmptyBucket(CopyFunc copier) {
 	_Bucket * new = (_Bucket *)calloc(1,sizeof(_Bucket));
 	assert(new);
@@ -49,17 +52,27 @@ void _DestroyBucket(_Bucket * bucket) {
 
 void * _AddToBucket(_Bucket * bucket, void * element) {
 	if (!bucket)
-		return -1;
+		return NULL;
 	return AppendToList(bucket->entries, element);
 }
 
-void * _GetFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
-	if (!bucket || judger)
+void * _ExtractFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
+	if (!bucket || !judger)
 		return NULL;
-	return GetFromList(bucket->entries, judger, key);
+	return ExtractFromList(bucket->entries, judger, key);
 }
 
+void * _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
+	if (!bucket || !judger)
+		return 0;
+	return RemoveFromList(bucket->entries, judger, key);
+}
 
+void _ClearBucket(_Bucket * bucket) {
+	if (!bucket)
+		return;
+	ClearList(bucket->entries);
+}
 
 /* --- internal HashMap --- */
 
@@ -104,6 +117,24 @@ _HashMap * _FillHashMap(_UnfilledHashMap * unfilled) {
 	return hashmap;
 }
 
+
+void _ApplyToAllBuckets(_HashMap * hashmap, BucketApply apply) {
+	if (!hashmap || !apply)
+		return;
+	for (int i = 0; i < hashmap->total; i++) {
+		apply(hashmap->buckets[i]);
+	}
+}
+
+// :( missing partial function support 
+void _ApplyToAllLists(_HashMap * hashmap, ListApplyFunc apply) {
+	if (!hashmap || !apply)
+		return;
+	for (int i = 0; i < hashmap->total; i++) {
+		apply(hashmap->buckets[i]->entries)
+	}
+}
+
 /* --- external HashMap functions --- */
 
 _HashMap * NewHashMap(
@@ -112,11 +143,7 @@ _HashMap * NewHashMap(
 	AreEqualFunc aef,
 	int total
 ) {
-	return _FillHashMap(
-		_SetEmptyHashMap(
-			_MakeEmptyHashMap(), cf, hf, aef, total
-			)
-		);
+	return _FillHashMap(_SetEmptyHashMap(_MakeEmptyHashMap(), cf, hf, aef, total));
 }
 
 void DestroyHashMap(HashMap * hashmap) {
@@ -124,9 +151,7 @@ void DestroyHashMap(HashMap * hashmap) {
 		return;
 
 	_HashMap * h = (_HashMap *)hashmap;
-	for (int i = 0; i < h->total; i++) {
-		_DestroyBucket(h->buckets[i]);
-	}
+	_ApplyToAllBuckets(h, &_DestroyBucket);
 	free(h);
 }
 
@@ -142,5 +167,40 @@ void * AddToHashMap(HashMap * hashmap, void * element) {
 		return NULL;
 
 	_HashMap * h = (_HashMap *)hashmap;
+	h->size++;
 	return _AddToBucket(_HashToBucket(h, element));
+}
+
+void * ExtractFromHashMap(HashMap * hashmap, void * key) {
+	if (!hashmap)
+		return NULL;
+	_HashMap * h = (_HashMap *)hashmap;
+	void * extracted = _ExtractFromBucket(_HashToBucket(h, key), h->judger, key);
+	if (extracted != NULL) {
+		h->size--;
+	}
+	return extracted;
+}
+
+int RemoveFromHashMap(HashMap * hashmap, void * key) {
+	if (!hashmap)
+		return NULL;
+	_HashMap * h = (_HashMap *)hashmap;
+	int removed = _RemoveFromBucket(_HashToBucket(h, key), h->judger, key);
+	h->size -= removed;
+	return removed;
+}
+
+void ClearHashMap(HashMap * hashmap) {
+	if (!hashmap)
+		return;
+	_HashMap * h = (_HashMap *)hashmap;
+	_ApplyToAllLists(h, &ClearList);
+}
+
+void ApplyToHashMap(HashMap * hashmap, HashMapApplyFunc apply) {
+	if (!hashmap || !apply)
+		return NULL;
+	_HashMap * h = (_HashMap *)hashmap;
+	_ApplyToAllLists(h, (ListApplyFunc)apply);
 }
