@@ -1,20 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "StringHelper.h"
 
 
 /* Peter Weinberger's hash function, from Aho, Sethi, & Ullman
    p. 436. */
-static unsigned hashPJW(char *s) {
+unsigned hashPJW(void * string) {
   unsigned h = 0, g;
   char *p;
 
-  for (p = s; *p != '\0'; p++) {
-      h = (h << 4) + *p;
-      if ((g = (h & 0xf0000000)) != 0)
-  h ^= (g >> 24) ^ g;
-    }
+  for (p = string; *p != '\0'; p++) {
+    h = (h << 4) + *p;
+    if ((g = (h & 0xf0000000)) != 0)
+  		h ^= (g >> 24) ^ g;
+  }
 
   return h;
 }

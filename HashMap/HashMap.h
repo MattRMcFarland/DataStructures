@@ -6,7 +6,7 @@ typedef struct HashMap HashMap;
 typedef void * (*CopyFunc)(void * element);
 typedef unsigned (*HashFunc)(void * element);
 typedef int (*AreEqualFunc)(void * element1, void * element2);
-typedef int (*HashMapApplyFunc)(void * element);
+typedef void (*HashMapApplyFunc)(void * element);
 
 HashMap * NewHashMap(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int total);
 void DestroyHashMap(HashMap * hashmap);
