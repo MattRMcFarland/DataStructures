@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "../List/List.h"
 #include "HashMap.h"
 
@@ -17,12 +19,12 @@ typedef struct _HashMap {
 	int size;
 	int occupied;
 	int total;
-	_Bucket * buckets[];
+	_Bucket ** buckets;
 	
 } _HashMap;
 
-int DefaultHashFunction(void * element) {
-	return (int)element
+unsigned DefaultHashFunction(void * element) {
+	return (unsigned)(long)element;
 }
 
 _Bucket * _HashToBucket(_HashMap * hashmap, void * element) {
@@ -61,7 +63,7 @@ void * _ExtractFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	return ExtractFromList(bucket->entries, (ListSearchFunc)judger, key);
 }
 
-void * _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
+int _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return 0;
 	return RemoveFromList(bucket->entries, (ListSearchFunc)judger, key);
@@ -82,7 +84,7 @@ int _BucketContains(_Bucket * bucket, AreEqualFunc judger, void * key) {
 void _PrintBucket(_Bucket * bucket, HashMapApplyFunc printer) {
 	if (!bucket || !printer)
 		return;
-	PrintList(bucket->entries, (ListApplyFunction)printer);
+	PrintList(bucket->entries, (ListApplyFunc)printer);
 }
 
 /* --- internal HashMap --- */
@@ -121,13 +123,29 @@ _HashMap * _FillHashMap(_UnfilledHashMap * unfilled) {
 	_HashMap * hashmap = (_HashMap *)unfilled;
 	hashmap->occupied = 0;
 	hashmap->buckets = (_Bucket **)calloc(hashmap->total,sizeof(_Bucket *));
-	assert(new->buckets);
-	for (int i = 0; i < total; i++) {
-		hashmap->buckets[i] = _MakeEmptyBucket(copier);
+	assert(hashmap->buckets);
+	for (int i = 0; i < hashmap->total; i++) {
+		hashmap->buckets[i] = _MakeEmptyBucket(hashmap->copier);
 	}
 	return hashmap;
 }
 
+void _ApplyToAllEntries(_HashMap * hashmap, ListApplyFunc apply) {
+	if (!hashmap || !apply)
+		return;
+	for (int i = 0; i < hashmap->total; i++) {
+		ListApply(hashmap->buckets[i]->entries, apply);
+	}
+}
+
+// :( missing partial function support 
+void _ApplyToAllLists(_HashMap * hashmap, void (* applyToListFunc)(List *)) {
+	if (!hashmap || !applyToListFunc)
+		return;
+	for (int i = 0; i < hashmap->total; i++) {
+		applyToListFunc(hashmap->buckets[i]->entries);
+	}
+}
 
 void _ApplyToAllBuckets(_HashMap * hashmap, BucketApply apply) {
 	if (!hashmap || !apply)
@@ -137,24 +155,15 @@ void _ApplyToAllBuckets(_HashMap * hashmap, BucketApply apply) {
 	}
 }
 
-// :( missing partial function support 
-void _ApplyToAllLists(_HashMap * hashmap, ListApplyFunc apply) {
-	if (!hashmap || !apply)
-		return;
-	for (int i = 0; i < hashmap->total; i++) {
-		apply(hashmap->buckets[i]->entries)
-	}
-}
-
 /* --- external HashMap functions --- */
 
-_HashMap * NewHashMap(
+HashMap * NewHashMap(
 	CopyFunc cf, 
 	HashFunc hf, 
 	AreEqualFunc aef,
 	int total
 ) {
-	return _FillHashMap(_SetEmptyHashMap(_MakeEmptyHashMap(), cf, hf, aef, total));
+	return (HashMap *)_FillHashMap(_SetEmptyHashMap(_MakeEmptyHashMap(), cf, hf, aef, total));
 }
 
 void DestroyHashMap(HashMap * hashmap) {
@@ -179,7 +188,7 @@ void * AddToHashMap(HashMap * hashmap, void * element) {
 
 	_HashMap * h = (_HashMap *)hashmap;
 	h->size++;
-	return _AddToBucket(_HashToBucket(h, element));
+	return _AddToBucket(_HashToBucket(h, element), element);
 }
 
 void * ExtractFromHashMap(HashMap * hashmap, void * key) {
@@ -195,7 +204,7 @@ void * ExtractFromHashMap(HashMap * hashmap, void * key) {
 
 int RemoveFromHashMap(HashMap * hashmap, void * key) {
 	if (!hashmap)
-		return NULL;
+		return -1;
 	_HashMap * h = (_HashMap *)hashmap;
 	int removed = _RemoveFromBucket(_HashToBucket(h, key), h->judger, key);
 	h->size -= removed;
@@ -218,9 +227,9 @@ int HashMapContains(HashMap * hashmap, void * key) {
 
 void ApplyToHashMap(HashMap * hashmap, HashMapApplyFunc apply) {
 	if (!hashmap || !apply)
-		return NULL;
+		return;
 	_HashMap * h = (_HashMap *)hashmap;
-	_ApplyToAllLists(h, (ListApplyFunc)apply);
+	_ApplyToAllEntries(h, (ListApplyFunc)apply);
 }
 
 void PrintHashMap(HashMap * hashmap, HashMapApplyFunc printer) {
@@ -228,9 +237,9 @@ void PrintHashMap(HashMap * hashmap, HashMapApplyFunc printer) {
 		return;
 	_HashMap * h = (_HashMap *)hashmap;
 	printf("HashMap:\n");
-	for (int i = 0; i < h; i++) {
+	for (int i = 0; i < h->total; i++) {
 		if (ListSize(h->buckets[i]->entries) > 0) {
-			printf("\t%d : ");
+			printf("\tBucket - %d : ", i);
 			_PrintBucket(h->buckets[i], printer);
 		}
 	}

@@ -4,30 +4,10 @@
 #include <assert.h>
 #include "List.h"
 #include "../TestingHelper/TestingHelper.h"
+#include "../AbstractHelpers/StringHelper.h"
+#include "../AbstractHelpers/IntHelper.h"
 
-/* --- string list helpers --- */
-
-void * myStrdup(void * string) {
-	return (void *)strdup((char *)string);
-}
-
-int strIsEqual(void * testStr, void * targetStr) {
-	char * testS = (char *)testStr;
-	char * targetS = (char *)targetStr;
-
-	if (testS == NULL && targetS == NULL)
-		return 1;
-	else if (!testS || !targetS)
-		return 0;
-
-	return (strcmp(testS, targetS) == 0) ? 1 : 0;
-}
-
-void printStr(void * str) {
-	if (!str)
-		return;
-	printf("%s, ", (char *)str);
-}
+/* --- additional string list helpers --- */
 
 void squasher(void * string) {
 	if (!string)
@@ -37,37 +17,7 @@ void squasher(void * string) {
 		s[0] = '_';
 }
 
-/* --- integer list helpers --- */
-
-void * myIntDup(void * integer) {
-	if (!integer)
-		return NULL;
-	int * copy = (int *)calloc(1,sizeof(int));
-	assert(copy);
-	memcpy(copy, integer, sizeof(int));
-	return copy;
-}
-
-int myIntCmp(void * testInteger, void * targetInteger) {
-	if (testInteger == NULL && targetInteger == NULL)
-		return 1;
-	else if (!testInteger || !targetInteger)
-		return 0;
-
-	return *(int *)testInteger == *(int *)targetInteger;
-}
-
-void printInt(void * integer) {
-	if (!integer)
-		return;
-	printf("%d, ", *(int *)integer);
-}
-
-void incInt(void * integer) {
-	if (!integer)
-		return;
-	(*(int *)integer)++;
-}
+/* --- additional integer list helpers --- */
 
 List * MakeIntListFromArr(int arr[], int size) {
 	if (!arr || size < 0)

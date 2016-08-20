@@ -363,8 +363,16 @@ void ListApply(List * list, ListApplyFunc toApply) {
 void PrintList(List * list, ListApplyFunc elementPrinter) {
 	if (!list || !elementPrinter)
 		return;
-	printf("List: {");
-	ListApply(list, elementPrinter);
+	_List * l = (_List *)list;
+	_Node * pencil = l->head;
+	printf("{");
+	while (pencil) {
+		elementPrinter(pencil->data);
+		if (pencil->next)
+			printf(", ");
+
+		pencil = pencil->next;
+	} 
 	printf("}\n");
 }
 
