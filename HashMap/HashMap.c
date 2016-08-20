@@ -4,7 +4,6 @@
 
 #define DEFAULT_TOTAL 1000;
 
-
 typedef struct _Bucket {
 	List * entries;
 } _Bucket;
@@ -59,19 +58,31 @@ void * _AddToBucket(_Bucket * bucket, void * element) {
 void * _ExtractFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return NULL;
-	return ExtractFromList(bucket->entries, judger, key);
+	return ExtractFromList(bucket->entries, (ListSearchFunc)judger, key);
 }
 
 void * _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return 0;
-	return RemoveFromList(bucket->entries, judger, key);
+	return RemoveFromList(bucket->entries, (ListSearchFunc)judger, key);
 }
 
 void _ClearBucket(_Bucket * bucket) {
 	if (!bucket)
 		return;
 	ClearList(bucket->entries);
+}
+
+int _BucketContains(_Bucket * bucket, AreEqualFunc judger, void * key) {
+	if (!bucket || !judger)
+		return -1;
+	return ListContains(bucket->entries, (ListSearchFunc)judger, key);
+}
+
+void _PrintBucket(_Bucket * bucket, HashMapApplyFunc printer) {
+	if (!bucket || !printer)
+		return;
+	PrintList(bucket->entries, (ListApplyFunction)printer);
 }
 
 /* --- internal HashMap --- */
@@ -198,9 +209,31 @@ void ClearHashMap(HashMap * hashmap) {
 	_ApplyToAllLists(h, &ClearList);
 }
 
+int HashMapContains(HashMap * hashmap, void * key) {
+	if (!hashmap)
+		return -1;
+	_HashMap * h = (_HashMap *)hashmap;
+	return _BucketContains(_HashToBucket(h, key), h->judger, key);
+}
+
 void ApplyToHashMap(HashMap * hashmap, HashMapApplyFunc apply) {
 	if (!hashmap || !apply)
 		return NULL;
 	_HashMap * h = (_HashMap *)hashmap;
 	_ApplyToAllLists(h, (ListApplyFunc)apply);
+}
+
+void PrintHashMap(HashMap * hashmap, HashMapApplyFunc printer) {
+	if (!hashmap || !printer)
+		return;
+	_HashMap * h = (_HashMap *)hashmap;
+	printf("HashMap:\n");
+	for (int i = 0; i < h; i++) {
+		if (ListSize(h->buckets[i]->entries) > 0) {
+			printf("\t%d : ");
+			_PrintBucket(h->buckets[i], printer);
+		}
+	}
+	printf("\n");
+
 }

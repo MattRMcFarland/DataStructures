@@ -363,9 +363,9 @@ void ListApply(List * list, ListApplyFunc toApply) {
 void PrintList(List * list, ListApplyFunc elementPrinter) {
 	if (!list || !elementPrinter)
 		return;
-	printf("Printing List --\n");
+	printf("List: {");
 	ListApply(list, elementPrinter);
-	printf("\n\n");
+	printf("}\n");
 }
 
 

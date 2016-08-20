@@ -17,12 +17,15 @@ int HashMapSize(HashMap * hashmap);
 void * AddToHashMap(HashMap * hashmap, void * element);
 void * ExtractFromHashMap(HashMap * hashmap, void * key);
 
-// removes all instances of 'key' from the HashMap
-void RemoveFromHashmap(HashMap * hashmap, void * key);
+// removes all instances of 'key' from the HashMap, returns count of removed elements
+int RemoveFromHashmap(HashMap * hashmap, void * key);
 void ClearHashMap(HashMap * hashmap);
 
-void ApplyToHashMap(HashMap * hashmap, HashMapApplyFunc apply);
+// returns 1 if present, 0 if not, -1 on error
+int HashMapContains(HashMap * hashmap, void * key);
 
+void ApplyToHashMap(HashMap * hashmap, HashMapApplyFunc apply);
+HashMap * CopyHashMap(HashMap * hashmap);
 void PrintHashMap(HashMap * hashmap, HashMapApplyFunc printer);
 
 typedef struct HashMapIterator HashMapIterator;
