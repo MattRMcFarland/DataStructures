@@ -5,6 +5,7 @@ unsigned hashPJW(void * string);
 void * myStrdup(void * string);
 int strIsEqual(void * testStr, void * targetStr);
 void printStr(void * str);
+void squasher(void * string);
 
 #endif // STRING_HELPER_H
 

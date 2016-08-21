@@ -41,3 +41,11 @@ void printStr(void * str) {
 		return;
 	printf("%s", (char *)str);
 }
+
+void squasher(void * string) {
+	if (!string)
+		return;
+	char * s = (char *)string;
+	if (strlen(s) > 0)
+		s[0] = '_';
+}

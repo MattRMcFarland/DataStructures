@@ -7,16 +7,6 @@
 #include "../AbstractHelpers/StringHelper.h"
 #include "../AbstractHelpers/IntHelper.h"
 
-/* --- additional string list helpers --- */
-
-void squasher(void * string) {
-	if (!string)
-		return;
-	char * s = (char *)string;
-	if (strlen(s) > 0)
-		s[0] = '_';
-}
-
 /* --- additional integer list helpers --- */
 
 List * MakeIntListFromArr(int arr[], int size) {
