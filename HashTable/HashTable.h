@@ -1,6 +1,8 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 
+#include "../List/List.h"
+
 typedef struct HashTable HashTable;
 
 typedef void * (*CopyFunc)(void * element);
@@ -8,7 +10,7 @@ typedef unsigned (*HashFunc)(void * element);
 typedef int (*AreEqualFunc)(void * element1, void * element2);
 typedef void (*HashTableApplyFunc)(void * element);
 
-HashTable * NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int total);
+HashTable * NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int hashSlots);
 void DestroyHashTable(HashTable * hashtable);
 
 int HashTableSize(HashTable * hashtable);
@@ -23,6 +25,9 @@ void ClearHashTable(HashTable * hashtable);
 
 // returns 1 if present, 0 if not, -1 on error
 int HashTableContains(HashTable * hashtable, void * key);
+
+// returns list of all HashTable contents
+List * HashTableToList(HashTable * hashtable);
 
 // returns mutated hashtable, does not claim original
 HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply);

@@ -53,12 +53,39 @@ int main() {
 	shouldBe_Str(extracted, NULL);
 
 	/* 
-	 * test copy, appy and iterator functions
+	 * test copy, toList, apply and iterator functions
 	 */
 	HashTable * copy = CopyHashTable(hashtable);
+	printf("original --\n");
+	PrintHashTable(hashtable, &printStr);
+	printf("copy --\n");
 	PrintHashTable(copy, &printStr);
+	shouldBe_Int(HashTableSize(copy),HashTableSize(hashtable));
+
+	List * contents = HashTableToList(hashtable);
+	shouldBe_Int(ListSize(contents), HashTableSize(hashtable));
+
+	ListIterator * contentsIterator = MakeListIterator(contents);
+	void * contentsProbe = GetCurrentFromIterator(contentsIterator);
+
+	HashTableIterator * iterator = NewHashTableIterator(hashtable);
+	void * probe = GetHashTableIteratorCurrent(iterator);
+	int iterations = 0;
+	while (probe) {
+		iterations++;
+		shouldBe_Str((char*)probe, (char*)contentsProbe);
+		shouldBe_Int(HashTableContains(hashtable, probe), 1);
+		shouldBe_Int(HashTableContains(copy, probe), 1);
+		contentsProbe = AdvanceAndGetFromIterator(contentsIterator);
+		probe = AdvanceAndGetFromHashTableIterator(iterator);
+	}
+	shouldBe_Int(iterations, HashTableSize(hashtable));
+	DestroyHashTableIterator(iterator);
 	DestroyHashTable(copy);
 
+	/*
+	 * clean up  
+	 */
 
 	ClearHashTable(hashtable);
 	shouldBe_Int(HashTableSize(hashtable), 0);

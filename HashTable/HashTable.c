@@ -4,7 +4,7 @@
 #include "../List/List.h"
 #include "HashTable.h"
 
-#define DEFAULT_TOTAL 1000;
+#define DEFAULT_TOTALBUCKETS 1000;
 
 typedef struct _Bucket {
 	List * entries;
@@ -17,8 +17,7 @@ typedef struct _HashTable {
 	AreEqualFunc judger;
 
 	int size;
-	int occupied;
-	int total;
+	int totalBuckets;
 	_Bucket ** buckets;
 	
 } _HashTable;
@@ -30,7 +29,7 @@ unsigned DefaultHashFunction(void * element) {
 static _Bucket * _HashToBucket(_HashTable * HashTable, void * element) {
 	if (!HashTable || !element)
 		return NULL;
-	return HashTable->buckets[HashTable->hasher(element) % HashTable->total];
+	return HashTable->buckets[HashTable->hasher(element) % HashTable->totalBuckets];
 }
 
 /* --- internal Bucket --- */
@@ -109,38 +108,37 @@ static _UnfilledHashTable * _SetEmptyHashTable(
 	CopyFunc copier, 
 	HashFunc hasher, 
 	AreEqualFunc judger,
-	int total) {
+	int totalBuckets) {
 
-	if (!unset || !copier || !hasher || !judger || total < 0)
+	if (!unset || !copier || !hasher || !judger || totalBuckets < 0)
 		return NULL;
 
-	_HashTable * HashTable = (_HashTable *)unset;
-	HashTable->copier = copier;
-	HashTable->hasher = hasher;
-	HashTable->judger = judger;
-	HashTable->total = total;
-	return (_UnfilledHashTable *)HashTable;
+	_HashTable * hashtable = (_HashTable *)unset;
+	hashtable->copier = copier;
+	hashtable->hasher = hasher;
+	hashtable->judger = judger;
+	hashtable->totalBuckets = totalBuckets;
+	return (_UnfilledHashTable *)hashtable;
 }
 
 static _HashTable * _FillHashTable(_UnfilledHashTable * unfilled) {
 	if (!unfilled)
 		return NULL;
 
-	_HashTable * HashTable = (_HashTable *)unfilled;
-	HashTable->occupied = 0;
-	HashTable->buckets = (_Bucket **)calloc(HashTable->total,sizeof(_Bucket *));
-	assert(HashTable->buckets);
-	for (int i = 0; i < HashTable->total; i++) {
-		HashTable->buckets[i] = _MakeEmptyBucket(HashTable->copier);
+	_HashTable * hashtable = (_HashTable *)unfilled;
+	hashtable->buckets = (_Bucket **)calloc(hashtable->totalBuckets,sizeof(_Bucket *));
+	assert(hashtable->buckets);
+	for (int i = 0; i < hashtable->totalBuckets; i++) {
+		hashtable->buckets[i] = _MakeEmptyBucket(hashtable->copier);
 	}
-	return HashTable;
+	return hashtable;
 }
 
 // :( missing partial function support 
 static void _ApplyToAllLists(_HashTable * HashTable, void (* applyToListFunc)(List *)) {
 	if (!HashTable || !applyToListFunc)
 		return;
-	for (int i = 0; i < HashTable->total; i++) {
+	for (int i = 0; i < HashTable->totalBuckets; i++) {
 		applyToListFunc(HashTable->buckets[i]->entries);
 	}
 }
@@ -148,7 +146,7 @@ static void _ApplyToAllLists(_HashTable * HashTable, void (* applyToListFunc)(Li
 static void _ApplyToAllBuckets(_HashTable * HashTable, BucketApply apply) {
 	if (!HashTable || !apply)
 		return;
-	for (int i = 0; i < HashTable->total; i++) {
+	for (int i = 0; i < HashTable->totalBuckets; i++) {
 		apply(HashTable->buckets[i]);
 	}
 }
@@ -157,8 +155,8 @@ static List * _HashTableToList(_HashTable * hashtable) {
 	if (!hashtable)
 		return NULL;
 	List * list = NewList(hashtable->copier);
-	for (int i = 0; i < hashtable->total; i++) {
-		CatLists(list,CopyList(_GetBucketList(hashtable->buckets[i])));
+	for (int i = 0; i < hashtable->totalBuckets; i++) {
+		list = CatLists(list,CopyList(_GetBucketList(hashtable->buckets[i])));
 	}
 	return list;
 }
@@ -174,7 +172,7 @@ typedef struct _HashTableIterator {
 static _HashTableIterator * _MakeHTI(_HashTable * table) {
 	if (!table)
 		return NULL;
-	_HashTableIterator * hti = (_HashTableIterator *)calloc(1,sizeof(_HashTableIterator *));
+	_HashTableIterator * hti = (_HashTableIterator *)calloc(1,sizeof(_HashTableIterator));
 	assert(hti);
 	hti->snapshot = _HashTableToList(table);
 	hti->iterator = MakeListIterator(hti->snapshot);
@@ -206,7 +204,7 @@ HashTable * NewHashTable(
 	CopyFunc cf, 
 	HashFunc hf, 
 	AreEqualFunc aef,
-	int total
+	int totalBuckets
 ) {
 	_HashTable * new = 
 		_FillHashTable(
@@ -215,7 +213,7 @@ HashTable * NewHashTable(
 				cf, 
 				hf, 
 				aef, 
-				total
+				totalBuckets
 			)
 		);
 	return (HashTable *)new;
@@ -281,6 +279,14 @@ int HashTableContains(HashTable * HashTable, void * key) {
 	return _BucketContains(_HashToBucket(h, key), h->judger, key);
 }
 
+List * HashTableToList(HashTable * hashtable) {
+	if (!hashtable)
+		return NULL;
+	_HashTable * h = (_HashTable *)hashtable;
+	return _HashTableToList(h);
+}
+
+
 HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply) {
 	if (!hashtable || !apply)
 		return NULL;
@@ -293,7 +299,7 @@ HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply) {
 				h->copier, 
 				h->hasher, 
 				h->judger, 
-				h->total
+				h->totalBuckets
 			)
 		);
  
@@ -323,13 +329,16 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 			h->copier, 
 			h->hasher, 
 			h->judger, 
-			h->total
+			h->totalBuckets
 		);
 
 	_HashTable * copy = (_HashTable *)unfilledCopy;
-	for (int i = 0; i < h->total; i++) {
+	copy->buckets = (_Bucket **)calloc(copy->totalBuckets,sizeof(_Bucket *));
+	assert(copy->buckets);
+	for (int i = 0; i < h->totalBuckets; i++) {
 		copy->buckets[i] = _CopyBucket(h->buckets[i], h->copier);
 	}
+	copy->size = h->size;
 
 	return (HashTable *)copy;
 }
@@ -339,7 +348,7 @@ void PrintHashTable(HashTable * HashTable, HashTableApplyFunc printer) {
 		return;
 	_HashTable * h = (_HashTable *)HashTable;
 	printf("HashTable:\n");
-	for (int i = 0; i < h->total; i++) {
+	for (int i = 0; i < h->totalBuckets; i++) {
 		if (ListSize(h->buckets[i]->entries) > 0) {
 			printf("\tBucket - %d : ", i);
 			_PrintBucket(h->buckets[i], printer);
