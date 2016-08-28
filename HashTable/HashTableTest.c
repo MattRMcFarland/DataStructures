@@ -52,9 +52,14 @@ int main() {
 	extracted = ExtractFromHashTable(hashtable, "aa");
 	shouldBe_Str(extracted, NULL);
 
+	extracted = ExtractFromHashTable(hashtable, "ff");
+	shouldBe_Str(extracted, "ff"); 
+	free(extracted);
+
 	/* 
 	 * test copy, toList, apply and iterator functions
 	 */
+
 	HashTable * copy = CopyHashTable(hashtable);
 	printf("original --\n");
 	PrintHashTable(hashtable, &printStr);
@@ -70,6 +75,7 @@ int main() {
 
 	HashTableIterator * iterator = NewHashTableIterator(hashtable);
 	void * probe = GetHashTableIteratorCurrent(iterator);
+
 	int iterations = 0;
 	while (probe) {
 		iterations++;
@@ -80,7 +86,10 @@ int main() {
 		probe = AdvanceAndGetFromHashTableIterator(iterator);
 	}
 	shouldBe_Int(iterations, HashTableSize(hashtable));
+
 	DestroyHashTableIterator(iterator);
+	DestroyListIterator(contentsIterator);
+	DestroyList(contents);
 	DestroyHashTable(copy);
 
 	/*

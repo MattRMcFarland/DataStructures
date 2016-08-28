@@ -324,8 +324,12 @@ void * PeekTail(List * list) {
 }
 
 List * CatLists(List * list1, List * list2) {
-	if (!list1 || !list2)
+	if (list1 == NULL && list2 == NULL)
 		return NULL;
+	else if (list1 != NULL && list2 == NULL)
+		return list1;
+	else if (list1 == NULL && list2 != NULL)
+		return list2;
 
 	_List * l1 = (_List *)list1;
 	_List * l2 = (_List *)list2;

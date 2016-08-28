@@ -82,7 +82,13 @@ static _Bucket * _CopyBucket(_Bucket * bucket, CopyFunc copier) {
 	if (!bucket)
 		return NULL;
 	_Bucket * copy = _MakeEmptyBucket(copier);
-	copy->entries = CopyList(bucket->entries);
+	ListIterator * iterator = MakeListIterator(bucket->entries);
+	void * data = GetCurrentFromIterator(iterator);
+	while (data) {
+		_AddToBucket(copy, data);
+		data = AdvanceAndGetFromIterator(iterator);
+	}
+	DestroyListIterator(iterator);
 	return copy;
 }
 
@@ -135,19 +141,19 @@ static _HashTable * _FillHashTable(_UnfilledHashTable * unfilled) {
 }
 
 // :( missing partial function support 
-static void _ApplyToAllLists(_HashTable * HashTable, void (* applyToListFunc)(List *)) {
-	if (!HashTable || !applyToListFunc)
+static void _ApplyToAllLists(_HashTable * hashtable, void (* applyToListFunc)(List *)) {
+	if (!hashtable || !applyToListFunc)
 		return;
-	for (int i = 0; i < HashTable->totalBuckets; i++) {
-		applyToListFunc(HashTable->buckets[i]->entries);
+	for (int i = 0; i < hashtable->totalBuckets; i++) {
+		applyToListFunc(hashtable->buckets[i]->entries);
 	}
 }
 
-static void _ApplyToAllBuckets(_HashTable * HashTable, BucketApply apply) {
-	if (!HashTable || !apply)
+static void _ApplyToAllBuckets(_HashTable * hashtable, BucketApply apply) {
+	if (!hashtable || !apply)
 		return;
-	for (int i = 0; i < HashTable->totalBuckets; i++) {
-		apply(HashTable->buckets[i]);
+	for (int i = 0; i < hashtable->totalBuckets; i++) {
+		apply(hashtable->buckets[i]);
 	}
 }
 
@@ -184,6 +190,7 @@ static void _DestroyHTI(_HashTableIterator * hti) {
 		return;
 	DestroyListIterator(hti->iterator);
 	DestroyList(hti->snapshot);
+	free(hti);
 }
 
 static void * _GetCurrentFromHTI(_HashTableIterator * hti) {
@@ -225,6 +232,7 @@ void DestroyHashTable(HashTable * HashTable) {
 
 	_HashTable * h = (_HashTable *)HashTable;
 	_ApplyToAllBuckets(h, &_DestroyBucket);
+	free(h->buckets);
 	free(h);
 }
 
