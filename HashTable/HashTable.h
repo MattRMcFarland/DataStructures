@@ -9,31 +9,35 @@ typedef int (*AreEqualFunc)(void * element1, void * element2);
 typedef void (*HashTableApplyFunc)(void * element);
 
 HashTable * NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int total);
-void DestroyHashTable(HashTable * HashTable);
+void DestroyHashTable(HashTable * hashtable);
 
-int HashTableSize(HashTable * HashTable);
+int HashTableSize(HashTable * hashtable);
 
 // paranoidly returns reference to copied element -- do not claim!
-void * AddToHashTable(HashTable * HashTable, void * element);
-void * ExtractFromHashTable(HashTable * HashTable, void * key);
+void * AddToHashTable(HashTable * hashtable, void * element);
+void * ExtractFromHashTable(HashTable * hashtable, void * key);
 
-// removes all instances of 'key' from the HashTable, returns count of removed elements
-int RemoveFromHashTable(HashTable * HashTable, void * key);
-void ClearHashTable(HashTable * HashTable);
+// removes all instances of 'key' from the hashtable, returns count of removed elements
+int RemoveFromHashTable(HashTable * hashtable, void * key);
+void ClearHashTable(HashTable * hashtable);
 
 // returns 1 if present, 0 if not, -1 on error
-int HashTableContains(HashTable * HashTable, void * key);
+int HashTableContains(HashTable * hashtable, void * key);
 
-void ApplyToHashTable(HashTable * HashTable, HashTableApplyFunc apply);
-HashTable * CopyHashTable(HashTable * HashTable);
-void PrintHashTable(HashTable * HashTable, HashTableApplyFunc printer);
+// returns mutated hashtable, does not claim original
+HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply);
+
+HashTable * CopyHashTable(HashTable * hashtable);
+void PrintHashTable(HashTable * hashtable, HashTableApplyFunc printer);
+
+/* --- iterate over all elements in a snapshot of hashtable --- */
 
 typedef struct HashTableIterator HashTableIterator;
 
-HashTableIterator * NewHashTableIterator(HashTable * HashTable);
+HashTableIterator * NewHashTableIterator(HashTable * hashtable);
 void DestroyHashTableIterator(HashTableIterator * iterator);
 
-void * GetIteratorCurrent(HashTableIterator * iterator);
-void AdvanceIterator(HashTableIterator * iterator);
+void * GetHashTableIteratorCurrent(HashTableIterator * iterator);
+void * AdvanceAndGetFromHashTableIterator(HashTableIterator * iterator);
 
 #endif // HASHTABLE_H

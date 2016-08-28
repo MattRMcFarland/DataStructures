@@ -69,20 +69,22 @@ static int _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) 
 	return RemoveFromList(bucket->entries, (ListSearchFunc)judger, key);
 }
 
-static List * _GetBucketList(_Bucket * bucket) {
-	return (bucket != NULL) ? bucket->entries : NULL;
-}
-
-static void _ClearBucket(_Bucket * bucket) {
-	if (!bucket)
-		return;
-	ClearList(bucket->entries);
-}
-
 static int _BucketContains(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return -1;
 	return ListContains(bucket->entries, (ListSearchFunc)judger, key);
+}
+
+static List * _GetBucketList(_Bucket * bucket) {
+	return (bucket != NULL) ? bucket->entries : NULL;
+}
+
+static _Bucket * _CopyBucket(_Bucket * bucket, CopyFunc copier) {
+	if (!bucket)
+		return NULL;
+	_Bucket * copy = _MakeEmptyBucket(copier);
+	copy->entries = CopyList(bucket->entries);
+	return copy;
 }
 
 static void _PrintBucket(_Bucket * bucket, HashTableApplyFunc printer) {
@@ -134,14 +136,6 @@ static _HashTable * _FillHashTable(_UnfilledHashTable * unfilled) {
 	return HashTable;
 }
 
-static void _ApplyToAllEntries(_HashTable * HashTable, ListApplyFunc apply) {
-	if (!HashTable || !apply)
-		return;
-	for (int i = 0; i < HashTable->total; i++) {
-		ListApply(HashTable->buckets[i]->entries, apply);
-	}
-}
-
 // :( missing partial function support 
 static void _ApplyToAllLists(_HashTable * HashTable, void (* applyToListFunc)(List *)) {
 	if (!HashTable || !applyToListFunc)
@@ -176,7 +170,7 @@ typedef struct _HashTableIterator {
 	ListIterator * iterator;
 } _HashTableIterator;
 
-// creates a list of all of the hashtable's current entries (in a copy)!
+// creates a list of all of the hashtable's current entries (in a snapshot copy)!
 static _HashTableIterator * _MakeHTI(_HashTable * table) {
 	if (!table)
 		return NULL;
@@ -187,11 +181,23 @@ static _HashTableIterator * _MakeHTI(_HashTable * table) {
 	return hti;
 }
 
-void _DestroyHTI(_HashTableIterator * hti) {
+static void _DestroyHTI(_HashTableIterator * hti) {
 	if (!hti)
 		return;
 	DestroyListIterator(hti->iterator);
 	DestroyList(hti->snapshot);
+}
+
+static void * _GetCurrentFromHTI(_HashTableIterator * hti) {
+	if (!hti)
+		return NULL;
+	return GetCurrentFromIterator(hti->iterator);
+}
+
+static void * _AdvanceAndGetFromHTI(_HashTableIterator * hti) {
+	if (!hti)
+		return NULL;
+	return AdvanceAndGetFromIterator(hti->iterator);
 }
 
 /* --- external HashTable functions --- */
@@ -202,7 +208,17 @@ HashTable * NewHashTable(
 	AreEqualFunc aef,
 	int total
 ) {
-	return (HashTable *)_FillHashTable(_SetEmptyHashTable(_MakeEmptyHashTable(), cf, hf, aef, total));
+	_HashTable * new = 
+		_FillHashTable(
+			_SetEmptyHashTable(
+				_MakeEmptyHashTable(), 
+				cf, 
+				hf, 
+				aef, 
+				total
+			)
+		);
+	return (HashTable *)new;
 }
 
 void DestroyHashTable(HashTable * HashTable) {
@@ -265,26 +281,57 @@ int HashTableContains(HashTable * HashTable, void * key) {
 	return _BucketContains(_HashToBucket(h, key), h->judger, key);
 }
 
-// nope! need to be more careful than this... need rehash everything into a new map
-void ApplyToHashTable(HashTable * HashTable, HashTableApplyFunc apply) {
+HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply) {
+	if (!hashtable || !apply)
+		return NULL;
 
-	if (!HashTable || !apply)
-		return;
-	_HashTable * h = (_HashTable *)HashTable;
+	_HashTable * h = (_HashTable *)hashtable;
+	_HashTable * new = 		
+		_FillHashTable(
+			_SetEmptyHashTable(
+				_MakeEmptyHashTable(), 
+				h->copier, 
+				h->hasher, 
+				h->judger, 
+				h->total
+			)
+		);
+ 
+	List * snapshot = _HashTableToList(h);
+	ListApply(snapshot, (ListApplyFunc)apply);
+	ListIterator * iterator = MakeListIterator(snapshot);
+	void * probe = GetCurrentFromIterator(iterator);
+	while (probe) {
+		_AddToBucket(_HashToBucket(new, probe), probe);
+		probe = AdvanceAndGetFromIterator(iterator);
+	}
 
-	// make a new empty hashmap
+	DestroyListIterator(iterator);
+	DestroyList(snapshot);
 
-	// for each element inside the current hashmap
-		// apply function
-		// rehash
-		// add to new hashmap
+	return (HashTable *)new;
+}
 
-	fprintf(stderr,"NOPE! Apply to HashTable isn't supported yet!\n");
-	assert(0);
-	// go through each element, apply it, then rehash it and add it to the new map
-	// don't forget to free the previous memory!
+HashTable * CopyHashTable(HashTable * hashtable) {
+	if (!hashtable)
+		return NULL;
+	_HashTable * h = (_HashTable *)hashtable;
 
-	_ApplyToAllEntries(h, (ListApplyFunc)apply);
+	_UnfilledHashTable * unfilledCopy = 
+		_SetEmptyHashTable(
+			_MakeEmptyHashTable(), 
+			h->copier, 
+			h->hasher, 
+			h->judger, 
+			h->total
+		);
+
+	_HashTable * copy = (_HashTable *)unfilledCopy;
+	for (int i = 0; i < h->total; i++) {
+		copy->buckets[i] = _CopyBucket(h->buckets[i], h->copier);
+	}
+
+	return (HashTable *)copy;
 }
 
 void PrintHashTable(HashTable * HashTable, HashTableApplyFunc printer) {
@@ -300,4 +347,35 @@ void PrintHashTable(HashTable * HashTable, HashTableApplyFunc printer) {
 	}
 	printf("\n");
 
+}
+
+/* --- external iterator stuff --- */
+
+HashTableIterator * NewHashTableIterator(HashTable * hashtable) {
+	if (!hashtable)
+		return NULL;
+	_HashTable * h = (_HashTable *)hashtable;
+	return (HashTableIterator *)_MakeHTI(h);
+}
+
+void DestroyHashTableIterator(HashTableIterator * iterator) {
+	if (!iterator)
+		return;
+	_HashTableIterator * hti = (_HashTableIterator *)iterator;
+	_DestroyHTI(hti);
+	return;
+}
+
+void * GetHashTableIteratorCurrent(HashTableIterator * iterator) {
+	if (!iterator)
+		return NULL;
+	_HashTableIterator * hti = (_HashTableIterator *)iterator;
+	return _GetCurrentFromHTI(hti);
+}
+
+void * AdvanceAndGetFromHashTableIterator(HashTableIterator * iterator) {
+	if (!iterator)
+		return NULL;
+	_HashTableIterator * hti = (_HashTableIterator *)iterator;
+	return _AdvanceAndGetFromHTI(hti);
 }

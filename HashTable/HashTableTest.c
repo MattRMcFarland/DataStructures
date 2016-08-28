@@ -12,51 +12,59 @@ int main() {
 	 * test vanilla add, contains, extract, remove, size
 	 */
 
-	HashTable * HashTable = NewHashTable(&myStrdup, &hashPJW, &strIsEqual, 10);
+	HashTable * hashtable = NewHashTable(&myStrdup, &hashPJW, &strIsEqual, 10);
 	int size = 0;
-	shouldBe_Str(AddToHashTable(HashTable, "a"), "a"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "b"), "b"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "c"), "c"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "d"), "d"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "e"), "e"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "f"), "f"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "g"), "g"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "h"), "h"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "i"), "i"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "j"), "j"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "k"), "k"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "l"), "l"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "aa"), "aa"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "bb"), "bb"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "cc"), "cc"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "dd"), "dd"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "ee"), "ee"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "ff"), "ff"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "gg"), "gg"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "hh"), "hh"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "ii"), "ii"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "jj"), "jj"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "kk"), "kk"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "ll"), "ll"); size++;
 
-	shouldBe_Str(AddToHashTable(HashTable, "double"), "double"); size++;
-	shouldBe_Str(AddToHashTable(HashTable, "double"), "double"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "double"), "double"); size++;
+	shouldBe_Str(AddToHashTable(hashtable, "double"), "double"); size++;
 
-	shouldBe_Int(HashTableSize(HashTable), size);
-	PrintHashTable(HashTable, &printStr);
+	shouldBe_Int(HashTableSize(hashtable), size);
+	PrintHashTable(hashtable, &printStr);
 
-	shouldBe_Int(HashTableContains(HashTable, "a"), 1);
-	shouldBe_Int(HashTableContains(HashTable, "z"), 0);
-	shouldBe_Int(HashTableContains(HashTable, "i"), 1);
-	shouldBe_Int(HashTableContains(HashTable, "not here"), 0);
+	shouldBe_Int(HashTableContains(hashtable, "aa"), 1);
+	shouldBe_Int(HashTableContains(hashtable, "zz"), 0);
+	shouldBe_Int(HashTableContains(hashtable, "ii"), 1);
+	shouldBe_Int(HashTableContains(hashtable, "not here"), 0);
 
-	char * extracted = ExtractFromHashTable(HashTable, "a");
-	shouldBe_Str(extracted, "a");
+	char * extracted = ExtractFromHashTable(hashtable, "aa");
+	shouldBe_Str(extracted, "aa");
 	free(extracted);
 
-	shouldBe_Int(HashTableSize(HashTable), --size);
+	shouldBe_Int(HashTableSize(hashtable), --size);
 
-	shouldBe_Int(RemoveFromHashTable(HashTable, "double"), 2);
+	shouldBe_Int(RemoveFromHashTable(hashtable, "double"), 2);
 	size -= 2;
-	shouldBe_Int(HashTableSize(HashTable), size);
-	shouldBe_Int(HashTableContains(HashTable, "double"), 0);
+	shouldBe_Int(HashTableSize(hashtable), size);
+	shouldBe_Int(HashTableContains(hashtable, "double"), 0);
 
-	extracted = ExtractFromHashTable(HashTable, "a");
+	extracted = ExtractFromHashTable(hashtable, "aa");
 	shouldBe_Str(extracted, NULL);
 
-	ClearHashTable(HashTable);
-	shouldBe_Int(HashTableSize(HashTable), 0);
-	PrintHashTable(HashTable, &printStr);
+	/* 
+	 * test copy, appy and iterator functions
+	 */
+	HashTable * copy = CopyHashTable(hashtable);
+	PrintHashTable(copy, &printStr);
+	DestroyHashTable(copy);
 
-	DestroyHashTable(HashTable);
+
+	ClearHashTable(hashtable);
+	shouldBe_Int(HashTableSize(hashtable), 0);
+	PrintHashTable(hashtable, &printStr);
+
+	DestroyHashTable(hashtable);
 
 
 	printf("HashTable Tests Pass!\n");
