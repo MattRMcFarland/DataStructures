@@ -27,7 +27,7 @@ unsigned DefaultHashFunction(void * element) {
 	return (unsigned)(long)element;
 }
 
-_Bucket * _HashToBucket(_HashTable * HashTable, void * element) {
+static _Bucket * _HashToBucket(_HashTable * HashTable, void * element) {
 	if (!HashTable || !element)
 		return NULL;
 	return HashTable->buckets[HashTable->hasher(element) % HashTable->total];
@@ -37,51 +37,55 @@ _Bucket * _HashToBucket(_HashTable * HashTable, void * element) {
 
 typedef void (*BucketApply)(_Bucket * bucket);
 
-_Bucket * _MakeEmptyBucket(CopyFunc copier) {
+static _Bucket * _MakeEmptyBucket(CopyFunc copier) {
 	_Bucket * new = (_Bucket *)calloc(1,sizeof(_Bucket));
 	assert(new);
 	new->entries = NewList(copier);
 	return new;
 }
 
-void _DestroyBucket(_Bucket * bucket) {
+static void _DestroyBucket(_Bucket * bucket) {
 	if (!bucket)
 		return;
 	DestroyList(bucket->entries);
 	free(bucket);
 }
 
-void * _AddToBucket(_Bucket * bucket, void * element) {
+static void * _AddToBucket(_Bucket * bucket, void * element) {
 	if (!bucket)
 		return NULL;
 	return AppendToList(bucket->entries, element);
 }
 
-void * _ExtractFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
+static void * _ExtractFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return NULL;
 	return ExtractFromList(bucket->entries, (ListSearchFunc)judger, key);
 }
 
-int _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
+static int _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return 0;
 	return RemoveFromList(bucket->entries, (ListSearchFunc)judger, key);
 }
 
-void _ClearBucket(_Bucket * bucket) {
+static List * _GetBucketList(_Bucket * bucket) {
+	return (bucket != NULL) ? bucket->entries : NULL;
+}
+
+static void _ClearBucket(_Bucket * bucket) {
 	if (!bucket)
 		return;
 	ClearList(bucket->entries);
 }
 
-int _BucketContains(_Bucket * bucket, AreEqualFunc judger, void * key) {
+static int _BucketContains(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return -1;
 	return ListContains(bucket->entries, (ListSearchFunc)judger, key);
 }
 
-void _PrintBucket(_Bucket * bucket, HashTableApplyFunc printer) {
+static void _PrintBucket(_Bucket * bucket, HashTableApplyFunc printer) {
 	if (!bucket || !printer)
 		return;
 	PrintList(bucket->entries, (ListApplyFunc)printer);
@@ -92,19 +96,19 @@ void _PrintBucket(_Bucket * bucket, HashTableApplyFunc printer) {
 typedef struct _UnsetHashTable _UnsetHashTable;
 typedef struct _UnfilledHashTable _UnfilledHashTable;
 
-_UnsetHashTable * _MakeEmptyHashTable() {
+static _UnsetHashTable * _MakeEmptyHashTable() {
 	_HashTable * new = (_HashTable *)calloc(1,sizeof(_HashTable));
 	assert(new);
 	return (_UnsetHashTable *) new;
 }
 
-_UnfilledHashTable * _SetEmptyHashTable(
+static _UnfilledHashTable * _SetEmptyHashTable(
 	_UnsetHashTable * unset, 	
 	CopyFunc copier, 
 	HashFunc hasher, 
 	AreEqualFunc judger,
-	int total
-) {
+	int total) {
+
 	if (!unset || !copier || !hasher || !judger || total < 0)
 		return NULL;
 
@@ -116,7 +120,7 @@ _UnfilledHashTable * _SetEmptyHashTable(
 	return (_UnfilledHashTable *)HashTable;
 }
 
-_HashTable * _FillHashTable(_UnfilledHashTable * unfilled) {
+static _HashTable * _FillHashTable(_UnfilledHashTable * unfilled) {
 	if (!unfilled)
 		return NULL;
 
@@ -130,7 +134,7 @@ _HashTable * _FillHashTable(_UnfilledHashTable * unfilled) {
 	return HashTable;
 }
 
-void _ApplyToAllEntries(_HashTable * HashTable, ListApplyFunc apply) {
+static void _ApplyToAllEntries(_HashTable * HashTable, ListApplyFunc apply) {
 	if (!HashTable || !apply)
 		return;
 	for (int i = 0; i < HashTable->total; i++) {
@@ -139,7 +143,7 @@ void _ApplyToAllEntries(_HashTable * HashTable, ListApplyFunc apply) {
 }
 
 // :( missing partial function support 
-void _ApplyToAllLists(_HashTable * HashTable, void (* applyToListFunc)(List *)) {
+static void _ApplyToAllLists(_HashTable * HashTable, void (* applyToListFunc)(List *)) {
 	if (!HashTable || !applyToListFunc)
 		return;
 	for (int i = 0; i < HashTable->total; i++) {
@@ -147,12 +151,47 @@ void _ApplyToAllLists(_HashTable * HashTable, void (* applyToListFunc)(List *)) 
 	}
 }
 
-void _ApplyToAllBuckets(_HashTable * HashTable, BucketApply apply) {
+static void _ApplyToAllBuckets(_HashTable * HashTable, BucketApply apply) {
 	if (!HashTable || !apply)
 		return;
 	for (int i = 0; i < HashTable->total; i++) {
 		apply(HashTable->buckets[i]);
 	}
+}
+
+static List * _HashTableToList(_HashTable * hashtable) {
+	if (!hashtable)
+		return NULL;
+	List * list = NewList(hashtable->copier);
+	for (int i = 0; i < hashtable->total; i++) {
+		CatLists(list,CopyList(_GetBucketList(hashtable->buckets[i])));
+	}
+	return list;
+}
+
+/* --- internal iterator support --- */
+
+typedef struct _HashTableIterator {
+	List * snapshot;
+	ListIterator * iterator;
+} _HashTableIterator;
+
+// creates a list of all of the hashtable's current entries (in a copy)!
+static _HashTableIterator * _MakeHTI(_HashTable * table) {
+	if (!table)
+		return NULL;
+	_HashTableIterator * hti = (_HashTableIterator *)calloc(1,sizeof(_HashTableIterator *));
+	assert(hti);
+	hti->snapshot = _HashTableToList(table);
+	hti->iterator = MakeListIterator(hti->snapshot);
+	return hti;
+}
+
+void _DestroyHTI(_HashTableIterator * hti) {
+	if (!hti)
+		return;
+	DestroyListIterator(hti->iterator);
+	DestroyList(hti->snapshot);
 }
 
 /* --- external HashTable functions --- */
@@ -228,13 +267,17 @@ int HashTableContains(HashTable * HashTable, void * key) {
 
 // nope! need to be more careful than this... need rehash everything into a new map
 void ApplyToHashTable(HashTable * HashTable, HashTableApplyFunc apply) {
-	
 
 	if (!HashTable || !apply)
 		return;
 	_HashTable * h = (_HashTable *)HashTable;
 
 	// make a new empty hashmap
+
+	// for each element inside the current hashmap
+		// apply function
+		// rehash
+		// add to new hashmap
 
 	fprintf(stderr,"NOPE! Apply to HashTable isn't supported yet!\n");
 	assert(0);
