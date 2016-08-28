@@ -68,7 +68,11 @@ int main() {
 	shouldBe_Int(ListCount(list, &strIsEqual, "a"), 1);
 	shouldBe_Int(ListCount(list, &strIsEqual, "d"), 3);
 	shouldBe_Str((char *)ExtractFromList(list, &strIsEqual, "not here"), NULL);
-	shouldBe_Str((char *)ExtractFromList(list, &strIsEqual, "d"), "d");
+
+	char * extracted = (char *)ExtractFromList(list, &strIsEqual, "d");
+	shouldBe_Str(extracted, "d");
+	free(extracted);
+
 	shouldBe_Int(ListSize(list),--size);
 	shouldBe_Int(ListCount(list, &strIsEqual, "d"), 2);
 
@@ -200,7 +204,7 @@ int main() {
 
 
 	/*
-	 * testing apply
+	 * testing apply and reverse
 	 */
 
 	AppendToList(list, "cat");
@@ -208,6 +212,14 @@ int main() {
 	AppendToList(list, "hamster");
 	AppendToList(list, "cheetah");
 	PrintList(list, &printStr);
+
+	List * reversed = ReverseList(list);
+	PrintList(reversed, &printStr);
+	shouldBe_Int(ListSize(reversed), ListSize(list));
+	shouldBe_Str(PeekHead(reversed), PeekTail(list));
+	shouldBe_Str(PeekHead(list), PeekTail(reversed));
+	DestroyList(reversed);
+
 	ListApply(list, &squasher);
 	PrintList(list, &printStr);
 

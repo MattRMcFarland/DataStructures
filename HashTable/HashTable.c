@@ -226,10 +226,21 @@ int HashTableContains(HashTable * HashTable, void * key) {
 	return _BucketContains(_HashToBucket(h, key), h->judger, key);
 }
 
+// nope! need to be more careful than this... need rehash everything into a new map
 void ApplyToHashTable(HashTable * HashTable, HashTableApplyFunc apply) {
+	
+
 	if (!HashTable || !apply)
 		return;
 	_HashTable * h = (_HashTable *)HashTable;
+
+	// make a new empty hashmap
+
+	fprintf(stderr,"NOPE! Apply to HashTable isn't supported yet!\n");
+	assert(0);
+	// go through each element, apply it, then rehash it and add it to the new map
+	// don't forget to free the previous memory!
+
 	_ApplyToAllEntries(h, (ListApplyFunc)apply);
 }
 

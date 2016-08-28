@@ -37,6 +37,22 @@ void _DestroyNode(_Node * node) {
 	free(node);
 }
 
+void * _ExtractData(_Node * node) {
+	if (!node)
+		return NULL;
+	void * extracted = node->data;
+	node->data = NULL;
+	return extracted;
+}
+
+void * _ExtractDataAndDestroy(_Node * node) {
+	if (!node)
+		return NULL;
+	void * data = _ExtractData(node);
+	_DestroyNode(node);
+	return data;
+}
+
 // unsafe! doesn't check list head and tail correctness
 _Node * _SpliceOutNode(_Node * node) {
 	if (!node)
@@ -77,10 +93,20 @@ void _HitchNodes(_Node * caboose, _Node * leader) {
 
 /* --- internal list functions --- */
 
-_List * _MakeEmptyList() {
+typedef struct _UnsetList _UnsetList;
+
+_UnsetList * _MakeEmptyList() {
 	_List * list = (_List *)calloc(1,sizeof(_List));
 	assert(list);
-	return list;
+	return (_UnsetList *)list;
+}
+
+_List * _SetList(_UnsetList * list, CopyInFunc copier) {
+	if (!list)
+		return NULL;
+	_List * l = (_List *)list;
+	l->copier = copier;
+	return l; 
 }
 
 void * _AppendToList(_List * list, void * element) {
@@ -100,7 +126,23 @@ void * _AppendToList(_List * list, void * element) {
 	return copy;
 }
 
+void * _PutListHead(_List * list, void * element) {
+	if (!list || !element)
+		return NULL;
 
+	void * copy = list->copier(element);
+	if (list->head) {
+		list->head->prev = _MakeNode(copy, NULL, list->head);
+		list->head = list->head->prev;
+	} else {
+		list->head = list->tail = _MakeNode(copy, NULL, NULL);
+	}
+
+	list->size++;
+	return copy;
+}
+
+// sews _Node structs together, free's list2's _List
 _List * _SewLists(_List * list1, _List * list2) {
 	if (!list1 || !list2)
 		return NULL;
@@ -142,11 +184,8 @@ void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
 
 /* --- external functions --- */
 
-List * NewList(void * (*CopyInFunc)(void *)) {
-	_List * new = _MakeEmptyList();
-	new->copier = CopyInFunc;
-	new->size = 0;
-	new->head = new->tail = NULL;
+List * NewList(CopyInFunc copier) {
+	_List * new = _SetList(_MakeEmptyList(), copier);
 	return (List *)new;
 }
 
@@ -181,16 +220,7 @@ void * PutListHead(List * list, void * element) {
 		return NULL;
 
 	_List * l = (_List *)list;
-	void * copy = l->copier(element);
-	if (l->head) {
-		l->head->prev = _MakeNode(copy, NULL, l->head);
-		l->head = l->head->prev;
-	} else {
-		l->head = l->tail = _MakeNode(copy, NULL, NULL);
-	}
-
-	l->size++;
-	return copy;
+	return _PutListHead(l, element);
 }
 
 int RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
@@ -221,8 +251,7 @@ void * ExtractFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	_Node * probe = l->head;
 	while (probe) {
 		if (searchFunc(probe->data, key) == 1) {
-			probe = _SafeSpliceOutNode(l, probe);
-			return probe->data;
+			return _ExtractDataAndDestroy(_SafeSpliceOutNode(l, probe));;
 		}
 		probe = probe->next;
 	}
@@ -266,15 +295,8 @@ void * TakeHead(List * list) {
 	if (!list)
 		return NULL;
 
-	_List * l = (_List *)list;
-	void * data = NULL;
-
-	if (l->head) {
-		_Node * taken = _SafeSpliceOutNode(l, l->head);
-		data = l->copier(taken->data);
-		_DestroyNode(taken);
-	} 
-	return (data != NULL) ? data : NULL;
+	_List * l = (_List *)list; 
+	return (l->head != NULL) ? _ExtractDataAndDestroy(_SafeSpliceOutNode(l, l->head)) : NULL;
 }
 
 void * TakeTail(List * list) {
@@ -282,14 +304,7 @@ void * TakeTail(List * list) {
 		return NULL;
 
 	_List * l = (_List *)list;
-	void * data = NULL;
-
-	if (l->tail) {
-		_Node * taken = _SafeSpliceOutNode(l, l->tail);
-		data = l->copier(taken->data);
-		_DestroyNode(taken);
-	} 
-	return (data != NULL) ? data : NULL;
+	return (l->tail != NULL) ? _ExtractDataAndDestroy(_SafeSpliceOutNode(l, l->tail)) : NULL;
 }
 
 void * PeekHead(List * list) {
@@ -323,9 +338,7 @@ List * CopyList(List * list) {
 		return NULL;
 
 	_List * l = (_List *)list;
-	_List * copy = _MakeEmptyList();
-	copy->copier = l->copier;
-	copy->size = 0;
+	_List * copy = _SetList(_MakeEmptyList(), l->copier);
 
 	_Node * probe = l->head;
 	while (probe) {
@@ -335,6 +348,21 @@ List * CopyList(List * list) {
 
 	return (List *)copy;
 }
+
+List * ReverseList(List * list) {
+	if (!list)
+		return NULL;
+
+	_List * l = (_List *)list;
+	_List * reversed = _SetList(_MakeEmptyList(), l->copier);
+	_Node * head = l->head;
+	while (head) {
+		_PutListHead(reversed, head->data);
+		head = head->next;
+	}
+	return (List *)reversed;
+}
+
 
 void ClearList(List * list) {
 	if (!list)

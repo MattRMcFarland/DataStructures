@@ -5,6 +5,10 @@ typedef void * (*CopyInFunc)(void * element);
 typedef int (*ListSearchFunc)(void * element, void * key); // returns 1 on match
 typedef void (*ListApplyFunc)(void * element);
 
+// returns 1 if element 1 is less than element 2
+// sorts lists in place from lowest to highest
+typedef int (*ListIsLessThanFunc)(void * element1, void * element2);
+
 typedef struct List List;
 
 List * NewList(CopyInFunc copier);
@@ -42,6 +46,13 @@ void * PeekTail(List * list);
 // claims list2!
 List * CatLists(List * list1, List * list2);
 
+// returns sorted list, caller is reponsible for claiming original list
+// time complexity?
+List * SortList(List * list, ListIsLessThanFunc comparator);
+
+// returns reversed list, caller is reponsible for claiming original list
+List * ReverseList(List * list);
+
 void ClearList(List * list);
 List * CopyList(List * list);
 void ListApply(List * list, ListApplyFunc toApply);
@@ -50,6 +61,7 @@ void PrintList(List * list, ListApplyFunc elementPrinter);
 /* --- iterator --- */
 typedef struct ListIterator ListIterator;
 
+// iterates over private contents -- do not claim!
 ListIterator * MakeListIterator(List * list);
 void DestroyListIterator(ListIterator * iterator);
 
