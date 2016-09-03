@@ -87,6 +87,10 @@ int main() {
 	}
 	shouldBe_Int(iterations, HashTableSize(hashtable));
 
+	printf("should be squashed...\n");
+	HashTable * squashed = ApplyToHashTable(copy, &squasher);
+	PrintHashTable(squashed, &printStr);
+
 	DestroyHashTableIterator(iterator);
 	DestroyListIterator(contentsIterator);
 	DestroyList(contents);

@@ -353,6 +353,12 @@ List * CopyList(List * list) {
 	return (List *)copy;
 }
 
+List * SortList(List * list, ListIsLessThanFunc comparator) {
+	fprintf(stderr,"SortList isn't implemented yet!\n");
+	assert(0);
+	return NULL;
+}
+
 List * ReverseList(List * list) {
 	if (!list)
 		return NULL;
@@ -380,15 +386,15 @@ void ClearList(List * list) {
 	return;
 }
 
-void ListApply(List * list, ListApplyFunc toApply) {
-	if (!list || !toApply)
+void ListApply(List * list, ListApplyFunc f) {
+	if (!list || !f)
 		return;
 
 	_List * l = (_List *)list;
-	_Node * applier = l->head;
-	while (applier) {
-		toApply(applier->data);
-		applier = applier->next;
+	_Node * applyOn = l->head;
+	while (applyOn) {
+		f(applyOn->data);
+		applyOn = applyOn->next;
 	}
 }
 

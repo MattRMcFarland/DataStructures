@@ -294,7 +294,6 @@ List * HashTableToList(HashTable * hashtable) {
 	return _HashTableToList(h);
 }
 
-
 HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply) {
 	if (!hashtable || !apply)
 		return NULL;
