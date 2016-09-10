@@ -7,7 +7,7 @@ typedef void (*ListApplyFunc)(void * element);
 
 // returns 1 if element 1 is less than element 2
 // sorts lists in place from lowest to highest
-typedef int (*CompareFunc)(void * element1, void * element2);
+typedef int (*CompareFunc)(const void * element1, const void * element2);
 
 typedef struct List List;
 

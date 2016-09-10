@@ -111,6 +111,19 @@ _List * _SetList(_UnsetList * list, CopyInFunc copier) {
 	return l; 
 }
 
+void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
+	if (!list || !_NodeApplyFunc)
+		return;
+
+	_Node * head = list->head;
+	_Node * past;
+	while (head) {
+		past = head;
+		head = head->next;
+		_NodeApplyFunc(past);
+	}
+}
+
 void _DestroyList(_List * list) {
 	if (!list)
 		return;
@@ -124,14 +137,14 @@ void * _RawAppend(_List * list, void * element) {
 		return NULL;
 
 	if (list->tail) {
-		list->tail->next = _MakeNode(copy, list->tail, NULL);
+		list->tail->next = _MakeNode(element, list->tail, NULL);
 		list->tail = list->tail->next;
 	} else {
-		list->head = list->tail = _MakeNode(copy, NULL, NULL);
+		list->head = list->tail = _MakeNode(element, NULL, NULL);
 	}
 
 	list->size++;
-	return list->tail->element;
+	return list->tail->data;
 }
 
 void * _CopyAndAppend(_List * list, void * element) {
@@ -140,14 +153,7 @@ void * _CopyAndAppend(_List * list, void * element) {
 
 	void * copy = list->copier(element);
 	assert(copy);
-
-	return _RawAppend(list, element);
-}
-
-void * _NoCopyAppend(_List * list, void * element) {
-	if (!list || !element)
-		return NULL;
-	return _UnsafeAppend(list, element);
+	return _RawAppend(list, copy);
 }
 
 void * _PutListHead(_List * list, void * element) {
@@ -206,14 +212,14 @@ void ** _ListToArray(_List * list, int * length) {
 	assert(array);
 
 	*length = 0;
-	Node * spliced = NULL;
-	while (spliced = _SafeSpliceOutNode(list)) {
+	_Node * spliced = NULL;
+	while ((spliced = _SafeSpliceOutNode(list, list->head)) != NULL) {
 
-		// take out data
-		array[*length] = spliced->element;
+		// extract data
+		array[*length] = spliced->data;
 
-		// destroy node
-		spliced->element = NULL;
+		// destroy node wrapper
+		spliced->data = NULL;
 		_DestroyNode(spliced);
 
 		// increment and resize array if necessary
@@ -243,21 +249,6 @@ _UnsetList * _ArrayIntoList(void ** array, int length) {
 	}
 
 	return sorted;
-}
-
-/* --- end of list sorting --- */
-
-void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
-	if (!list || !_NodeApplyFunc)
-		return;
-
-	_Node * head = list->head;
-	_Node * past;
-	while (head) {
-		past = head;
-		head = head->next;
-		_NodeApplyFunc(past);
-	}
 }
 
 /* --- external functions --- */
@@ -433,14 +424,14 @@ List * SortList(List * list, CompareFunc comparator) {
 	if (!list || !comparator)
 		return NULL;
 
-	_List * l = (List *)list;
-	CopyInFunc copier = list->copier; 	// ew -- remove?
+	_List * l = (_List *)list;
 
 	int length;
-	void ** array = _ListToArray(list, &length);
+	void ** array = _ListToArray(l, &length);
 	_QSortArray(array, length, comparator);
 	_UnsetList * unsetSorted = _ArrayIntoList(array, length);
-	_List * sorted = _SetList(sorted, copier);
+	_List * sorted = _SetList(unsetSorted, l->copier);
+	_DestroyList(l);
 
 	return (List *)sorted;
 }
