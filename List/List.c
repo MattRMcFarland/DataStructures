@@ -35,7 +35,8 @@ _Node * _MakeNode(void * data, _Node * prev, _Node * next) {
 void _DestroyNode(_Node * node) {
 	if (!node)
 		return;
-	free(node->data);
+	if (node->data)
+		free(node->data);
 	free(node);
 }
 
@@ -201,7 +202,7 @@ _List * _SewLists(_List * list1, _List * list2) {
 
 /* --- list sorting business --- */
 
-// claims list, returns an array of Node * pointers of *length
+// claims all nodes in list, returns an array of void * pointers of *length
 // caller responsible for claiming array
 void ** _ListToArray(_List * list, int * length) {
 	if (!list || !length)
@@ -212,18 +213,13 @@ void ** _ListToArray(_List * list, int * length) {
 	assert(array);
 
 	*length = 0;
-	_Node * spliced = NULL;
-	while ((spliced = _SafeSpliceOutNode(list, list->head)) != NULL) {
+	void * data = NULL;
+	while ((data = _ExtractDataAndDestroy(_SafeSpliceOutNode(list, list->head))) != NULL) {
 
-		// extract data
-		array[*length] = spliced->data;
+		// extract data and increment
+		array[(*length)++] = data;
 
-		// destroy node wrapper
-		spliced->data = NULL;
-		_DestroyNode(spliced);
-
-		// increment and resize array if necessary
-		(*length)++;
+		// resize array if necessary
 		if (*length == size) {
 			size *= 2;
 			array = (void **)realloc(array, size * sizeof(void *));
@@ -236,17 +232,19 @@ void ** _ListToArray(_List * list, int * length) {
 void _QSortArray(void ** array, int length, CompareFunc comparator) {
 	if (!array || length < 0 || !comparator)
 		return;
-	qsort(array[0], length, sizeof(void *), comparator);
+	qsort(array, length, sizeof(void *), comparator);
 }
 
-_UnsetList * _ArrayIntoList(void ** array, int length) {
+// claims array
+_UnsetList * _ArrayIntoList(void * array[], int length) {
 	if (!array || length < 0)
 		return NULL;
 
 	_UnsetList * sorted = _MakeEmptyList();
 	for (int i = 0; i < length; i++) {
-	_RawAppend((_List *)sorted, array[i]);
+		_RawAppend((_List *)sorted, array[i]);
 	}
+	free(array);
 
 	return sorted;
 }

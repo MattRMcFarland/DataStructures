@@ -20,6 +20,10 @@ List * MakeIntListFromArr(int arr[], int size) {
 	return new;
 }
 
+int intArrCmp(const void * a1, const void * a2) {
+	return (*(int *)a1 - *(int *)a2);
+}
+
 /* 
  * ##							 ##
  * ### test suite ###
@@ -113,7 +117,7 @@ int main() {
 		shouldBe_Int(*(int *)AppendToList(HTlist, &arr[i]), arr[i]);
 	}
 	shouldBe_Int(ListSize(HTlist), HTsize);
-	PrintList(HTlist, &printInt);
+	printIntList(HTlist);
 
 	shouldBe_Int(*(int *)PeekHead(HTlist), 1);
 	shouldBe_Int(*(int *)PeekTail(HTlist), 11);
@@ -130,10 +134,10 @@ int main() {
 	shouldBe_Int(ListSize(HTlist), --HTsize);
 	free(tail);
 
-	PrintList(HTlist, &printInt);
+	printIntList(HTlist);
 
 	ListApply(HTlist, &incInt);
-	PrintList(HTlist, &printInt);
+	printIntList(HTlist);
 
 	ClearList(HTlist);
 	shouldBe_Int((int)PeekHead(HTlist), (int)NULL);
@@ -156,11 +160,11 @@ int main() {
 	List * wholeList = CatLists(leaderList, trailerList);
 	shouldBe_Int(ListSize(wholeList), 10);
 	for (int i = 0; i < 5; i++) {
-		shouldBe_Int(ListContains(wholeList, &myIntCmp, (void *)&leader[i]), 1);
-		shouldBe_Int(ListContains(wholeList, &myIntCmp, (void *)&trailer[i]), 1);
+		shouldBe_Int(ListContains(wholeList, &myIntIsEqual, (void *)&leader[i]), 1);
+		shouldBe_Int(ListContains(wholeList, &myIntIsEqual, (void *)&trailer[i]), 1);
 	}
 
-	PrintList(wholeList, &printInt);
+	printIntList(wholeList);
 	DestroyList(wholeList);
 
 	/* -- empty to empty -- */
@@ -181,11 +185,11 @@ int main() {
 	assert(filled1);
 	shouldBe_Int(ListSize(filled1), 6);
 	for (int i = 0; i < 6; i++) {
-		shouldBe_Int(ListContains(filled1, &myIntCmp, (void *)&filled[i]), 1);
+		shouldBe_Int(ListContains(filled1, &myIntIsEqual, (void *)&filled[i]), 1);
 	}
 	shouldBe_Int(*(int *)AppendToList(filled1, (void *)&dummy), dummy);
 	shouldBe_Int(ListSize(filled1), 7);
-	PrintList(filled1, &printInt);
+	printIntList(filled1);
 	DestroyList(filled1);
 
 	/* -- empty <- filled -- */
@@ -195,11 +199,11 @@ int main() {
 	assert(filled2);
 	shouldBe_Int(ListSize(filled2), 6);
 	for (int i = 0; i < 6; i++) {
-		shouldBe_Int(ListContains(filled2, &myIntCmp, (void *)&filled[i]), 1);
+		shouldBe_Int(ListContains(filled2, &myIntIsEqual, (void *)&filled[i]), 1);
 	}
 	shouldBe_Int(*(int *)AppendToList(filled2, (void *)&dummy), dummy);
 	shouldBe_Int(ListSize(filled2), 7);
-	PrintList(filled2, &printInt);
+	printIntList(filled2);
 	DestroyList(filled2);
 
 
@@ -222,6 +226,33 @@ int main() {
 
 	ListApply(list, &squasher);
 	PrintList(list, &printStr);
+
+	/*
+	 * testing sort
+	 */
+
+	int nums[] = {-10, 20, 50, 2, 89, 4, 2, -1, 0, 9000, 1000, 50};
+	int numsLen = sizeof(nums) / sizeof(int);
+	List * unsorted = MakeIntListFromArr(nums, numsLen);
+	printf("unsorted list: ");
+	printIntList(unsorted);
+
+	qsort(nums, numsLen, sizeof(int), &intArrCmp);
+
+	List * sorted = SortList(unsorted, &myIntCompare);
+	printf("sorted list: ");
+	printIntList(sorted);
+
+	ListIterator * sortedIterator = MakeListIterator(sorted);
+	int sortedIterations = 0;
+	void * sortedCurrent = GetCurrentFromIterator(sortedIterator);
+	while (sortedCurrent) {
+		shouldBe_Int(*(int *)sortedCurrent, nums[sortedIterations++]);
+		sortedCurrent = AdvanceAndGetFromIterator(sortedIterator);
+	}
+
+	DestroyListIterator(sortedIterator);
+	DestroyList(sorted);
 
 	/*
 	 * testing iterator
