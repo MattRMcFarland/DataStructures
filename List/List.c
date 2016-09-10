@@ -3,6 +3,8 @@
 #include <assert.h>
 #include "List.h"
 
+#define DEFAULT_SIZE 5
+
 typedef struct _Node {
 	struct _Node * next, * prev;
 	void * data;
@@ -109,12 +111,18 @@ _List * _SetList(_UnsetList * list, CopyInFunc copier) {
 	return l; 
 }
 
-void * _AppendToList(_List * list, void * element) {
+void _DestroyList(_List * list) {
+	if (!list)
+		return;
+
+	_ListApply(list, _DestroyNode);
+	free(list);
+}
+
+void * _RawAppend(_List * list, void * element) {
 	if (!list || !element)
 		return NULL;
 
-	void * copy = list->copier(element);
-	assert(copy);
 	if (list->tail) {
 		list->tail->next = _MakeNode(copy, list->tail, NULL);
 		list->tail = list->tail->next;
@@ -123,7 +131,23 @@ void * _AppendToList(_List * list, void * element) {
 	}
 
 	list->size++;
-	return copy;
+	return list->tail->element;
+}
+
+void * _CopyAndAppend(_List * list, void * element) {
+	if (!list || !element || !list->copier)
+		return NULL;
+
+	void * copy = list->copier(element);
+	assert(copy);
+
+	return _RawAppend(list, element);
+}
+
+void * _NoCopyAppend(_List * list, void * element) {
+	if (!list || !element)
+		return NULL;
+	return _UnsafeAppend(list, element);
 }
 
 void * _PutListHead(_List * list, void * element) {
@@ -169,6 +193,60 @@ _List * _SewLists(_List * list1, _List * list2) {
 	return catted;
 }
 
+/* --- list sorting business --- */
+
+// claims list, returns an array of Node * pointers of *length
+// caller responsible for claiming array
+void ** _ListToArray(_List * list, int * length) {
+	if (!list || !length)
+		return NULL;
+
+	int size = DEFAULT_SIZE;
+	void ** array = (void **)calloc(size, sizeof(void *));
+	assert(array);
+
+	*length = 0;
+	Node * spliced = NULL;
+	while (spliced = _SafeSpliceOutNode(list)) {
+
+		// take out data
+		array[*length] = spliced->element;
+
+		// destroy node
+		spliced->element = NULL;
+		_DestroyNode(spliced);
+
+		// increment and resize array if necessary
+		(*length)++;
+		if (*length == size) {
+			size *= 2;
+			array = (void **)realloc(array, size * sizeof(void *));
+		}
+	}
+
+	return array;
+}
+
+void _QSortArray(void ** array, int length, CompareFunc comparator) {
+	if (!array || length < 0 || !comparator)
+		return;
+	qsort(array[0], length, sizeof(void *), comparator);
+}
+
+_UnsetList * _ArrayIntoList(void ** array, int length) {
+	if (!array || length < 0)
+		return NULL;
+
+	_UnsetList * sorted = _MakeEmptyList();
+	for (int i = 0; i < length; i++) {
+	_RawAppend((_List *)sorted, array[i]);
+	}
+
+	return sorted;
+}
+
+/* --- end of list sorting --- */
+
 void _ListApply(_List * list, void (*_NodeApplyFunc)(_Node *)) {
 	if (!list || !_NodeApplyFunc)
 		return;
@@ -194,9 +272,7 @@ void DestroyList(List * list) {
 		return;
 
 	_List * l = (_List *)list;
-
-	_ListApply(l, _DestroyNode);
-	free(l);
+	_DestroyList(l);
 }
 
 int ListSize(List * list) {
@@ -212,7 +288,7 @@ void * AppendToList(List * list, void * element) {
 		return NULL;
 	
 	_List * l = (_List *)list;
-	return _AppendToList(l, element);
+	return _CopyAndAppend(l, element);
 }
 
 void * PutListHead(List * list, void * element) {
@@ -346,17 +422,27 @@ List * CopyList(List * list) {
 
 	_Node * probe = l->head;
 	while (probe) {
-		_AppendToList(copy,probe->data);
+		_CopyAndAppend(copy,probe->data);
 		probe = probe->next;
 	}
 
 	return (List *)copy;
 }
 
-List * SortList(List * list, ListIsLessThanFunc comparator) {
-	fprintf(stderr,"SortList isn't implemented yet!\n");
-	assert(0);
-	return NULL;
+List * SortList(List * list, CompareFunc comparator) {
+	if (!list || !comparator)
+		return NULL;
+
+	_List * l = (List *)list;
+	CopyInFunc copier = list->copier; 	// ew -- remove?
+
+	int length;
+	void ** array = _ListToArray(list, &length);
+	_QSortArray(array, length, comparator);
+	_UnsetList * unsetSorted = _ArrayIntoList(array, length);
+	_List * sorted = _SetList(sorted, copier);
+
+	return (List *)sorted;
 }
 
 List * ReverseList(List * list) {

@@ -7,6 +7,9 @@ int main() {
 	printf("\nRunning Queue Tests\n");
 
 	Queue * queue = MakeQueue(&myStrdup);
+
+	shouldBe_Str(Enqueue(queue, NULL), (char *)NULL);
+
 	shouldBe_Str(Enqueue(queue, "one"), "one");
 	shouldBe_Str(Enqueue(queue, "two"), "two");
 	shouldBe_Str(Enqueue(queue, "three"), "three");
@@ -18,6 +21,8 @@ int main() {
 	shouldBe_Str(Dequeue(queue), "three");
 	shouldBe_Str(Dequeue(queue), "four");
 	shouldBe_Str(Dequeue(queue), "five");
+
+	shouldBe_Str(Dequeue(queue), (char *)NULL);
 
 	DestroyQueue(queue);
 

@@ -7,7 +7,7 @@ typedef void (*ListApplyFunc)(void * element);
 
 // returns 1 if element 1 is less than element 2
 // sorts lists in place from lowest to highest
-typedef int (*ListIsLessThanFunc)(void * element1, void * element2);
+typedef int (*CompareFunc)(void * element1, void * element2);
 
 typedef struct List List;
 
@@ -46,9 +46,9 @@ void * PeekTail(List * list);
 // claims list2!
 List * CatLists(List * list1, List * list2);
 
-// returns sorted list, caller is reponsible for claiming original list
-// time complexity?
-List * SortList(List * list, ListIsLessThanFunc comparator);
+// and claims list argument and returns sorted list copy
+// uses quicksort -- O(N * log(N))
+List * SortList(List * list, CompareFunc comparator);
 
 // returns reversed list, caller is reponsible for claiming original list
 List * ReverseList(List * list);
