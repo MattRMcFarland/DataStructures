@@ -6,10 +6,10 @@ This hashtable structure allows you to store abstract memory references that wil
 
 * Creation: `HashTable * hashtable = HashTable * NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int hashSlots);
 ;` 
-** where `cf` a pointer to a function that returns a new allocated copy of the passed memory reference
-** where `hf` is a pointer to a hashfunction that takes an abstract reference and returns an integer hash
-** where `aef` is a pointer to a function that returns 1 if two of the abstract elements are equal to one another
-** where `hashSlots` describes the number of buckets in the table. (Sorry, no dynamic resizing yet!)
+	* where `cf` a pointer to a function that returns a new allocated copy of the passed memory reference
+	* where `hf` is a pointer to a hashfunction that takes an abstract reference and returns an integer hash
+	* where `aef` is a pointer to a function that returns 1 if two of the abstract elements are equal to one another
+	* where `hashSlots` describes the number of buckets in the table. (Sorry, no dynamic resizing yet!)
 
 * Addition: `void * copy = AddToHashTable(HashTable * hashtable, void * element);` adds the element pointed at by creating a copy of the element and inserting it into the table
 
