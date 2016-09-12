@@ -37,3 +37,23 @@ while (current) {
 }
 DestroyHashTableIterator(hti);
 ```
+* And more! Checkout `HashTable.h`
+
+## How Do I Build It?
+See `./Makefile` for an example on how to create the `HashTable.o` object file and how to link to it.
+
+```
+PATH_TO_HASHTABLE_DIR= # todo -- change this to the path to the HashTable dir
+PATH_TO_LIST_DIR= # todo -- change this to the path to the List dir
+
+$(PATH_TO_HASHTABLE_DIR)HashTable.o: $(PATH_TO_HASHTABLE_DIR)HashTable.c $(PATH_TO_HASHTABLE_DIR)HashTable.h
+	$(CC) $(CFLAGS) -c $(PATH_TO_HASHTABLE_DIR)HashTable.c -o $@
+
+$(PATH_TO_LIST_DIR)List.o: $(PATH_TO_LIST_DIR)List.c $(PATH_TO_LIST_DIR)List.h
+	$(CC) $(CFLAGS) -c $(PATH_TO_LIST_DIR)List.c -o $@
+```
+
+# FAQs and Notes
+
+## Claiming Memory -- Who Owns What?
+This HashTable creates and maintains its own copy of any data that you pass it in. The `HashTable.h` file explains how returned memory references are owned. If something is extracted, then the caller needs to claim the memory. If something is merely "looked at," then the HashTable will own it. `HashTable.h` will clearly state when memory is claimed or copied. Don't claim memory that you aren't supposed to. Things will segfault.
