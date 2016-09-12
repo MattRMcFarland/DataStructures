@@ -20,6 +20,7 @@ int ListSize(List * list);
 // returns pointer to new element -- do not claim!
 // cannot take NULL elements
 void * AppendToList(List * list, void * element);
+
 void * PutListHead(List * list, void * element);
 
 // removes data from list and returns reference, caller claims returned memory!

@@ -5,7 +5,7 @@ Need a robust list to drop into any of your projects? Try this!
 This is a linked-list structure that holds abstracted memory references. You can create any memory structure and pass it to the list as `(void *)`. The list will create its own copy of the data you've entered and maintain that. When you instantiate a list, you'll need to pass it a `CopyInFunc` function pointer which points to a function that you define that will copy data elements as they are added to the list. I've outlined two examples for Ints and Strings in `./ListTEst`. 
 
 ## How Do I Use It?
-`./ListTest` has some pretty exhuastive example on how to use the list and all the things you can do with it.
+`./ListTest` has some pretty exhaustive example on how to use the list and all the things you can do with it.
 
 ```
 void * copyFunc(void * data) {
