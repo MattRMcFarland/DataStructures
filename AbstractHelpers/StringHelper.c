@@ -24,6 +24,11 @@ void * myStrdup(void * string) {
 	return (void *)strdup((char *)string);
 }
 
+void safeFree(void * string) {
+	if (string)
+		free(string);
+}
+
 int strIsEqual(void * testStr, void * targetStr) {
 	char * testS = (char *)testStr;
 	char * targetS = (char *)targetStr;

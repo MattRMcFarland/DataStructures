@@ -11,6 +11,7 @@ typedef int (*CompareFunc)(const void * element1, const void * element2);
 
 typedef struct List List;
 
+// TODO: we also need a custom destroyer to be fully abstract
 List * NewList(CopyInFunc copier);
 void DestroyList(List * list);
 

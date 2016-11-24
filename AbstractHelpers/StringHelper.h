@@ -3,6 +3,7 @@
 
 unsigned hashPJW(void * string);
 void * myStrdup(void * string);
+void safeFree(void * string);
 int strIsEqual(void * testStr, void * targetStr);
 void printStr(void * str);
 void squasher(void * string);
