@@ -23,10 +23,20 @@ int main() {
 		&myStrdup, 
 		&safeFree,
 		&safeFree,
-		&hashPJW,
+		&hashPJW, 	// or %hashPJW
 		&strIsEqual,
 		&strIsEqual,
-		10);
+		5);
 	assert(map);
 
+	/*
+	 * add a bunch of users and passwords
+	 */
+	char * users[] = {"Matt", "Andrew", "Sarah", "Janet", "Jim", "Martin"};
+	char * passwords[] = {"purple", "blue", "red", "green", "yellow", "black"};
+	for (int i = 0; i < 6; i++) {
+		AddToHashMap(map, users[i], passwords[i]);
+	}
+
+	PrintHashMap(map, &printStrStrMap);
 }

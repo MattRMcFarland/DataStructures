@@ -229,8 +229,7 @@ NewHashMap(
 	map->keyJudge = kaef;
 	map->valueJudge = vaef;
 
-	if (!hf)
-		map->hasher = &DefaultHashFunction;
+	map->hasher = (hf != NULL) ? hf : &DefaultHashFunction;
 
 	map->totalBuckets = slots;
 	map->size = 0;
@@ -269,10 +268,12 @@ void PrintHashMap(HashMap * m, HashTableApplyFunc printer) {
 		return;
 
 	_HashMap * map = (_HashMap *)m;
-	printf("\nMap Print: {Size: %d, Slots: %d\n", map->size, map->totalBuckets);
+	printf("\nMap Print: {Size: %d, Slots: %d}\n", map->size, map->totalBuckets);
 	for (int i = 0; i < map->totalBuckets; i++) {
 		printf("-- Bucket %d --\n",i);
+		printf("\t");
 		_BucketApply(map->buckets[i], printer);
+		printf("\n");
 	}
 }
 
