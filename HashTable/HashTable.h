@@ -18,7 +18,7 @@ int HashTableSize(HashTable * hashtable);
 // paranoidly returns reference to copied element -- do not claim!
 void * AddToHashTable(HashTable * hashtable, void * element);
 
-void * e(HashTable * hashtable, void * key);
+void * ExtractFromHashTable(HashTable * hashtable, void * key);
 
 // removes all instances of 'key' from the hashtable, returns count of removed elements
 int RemoveFromHashTable(HashTable * hashtable, void * key);

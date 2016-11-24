@@ -91,19 +91,8 @@ void * _UpdateEntryValue(_Entry * entry, ValueDestroyFunc valueDestroyer, void *
 	return entry->value;
 }
 
-// 1 if entries match, 0 otherwise
-int _CompareEntries(void * entry1, void * entry2, KeysAreEqualFunc keyComparer, ValuesAreEqualFunc valueComparer) {
-	if (entry1 == NULL && entry2 == NULL) {
-		return 1;
-	} else if (entry1 != NULL && entry2 == NULL) {
-		return 0;
-	} else if (entry1 == NULL && entry2 != NULL) {
-		return 0;
-	} else {
-		_Entry * e1 = (_Entry *)entry1;
-		_Entry * e2 = (_Entry *)entry2;
-		return (keyComparer(e1->key, e2->key) && valueComparer(e1->value, e2->value)) ? 1 : 0;
-	}
+int _ComparePointers(void * e1, void * e2) {
+	return (e1 == e2);
 }
 
 /* --- internal bucket --- */
@@ -123,7 +112,7 @@ void _DestroyBucket(_Bucket * bucket) {
 	return;
 }
 
-void _BucketApply(_Bucket * bucket, HashTableApplyFunc f) {
+void _BucketApply(_Bucket * bucket, HashMapApplyFunc f) {
 	if (!bucket || !f)
 		return;
 
@@ -136,6 +125,42 @@ void _BucketApply(_Bucket * bucket, HashTableApplyFunc f) {
 	DestroyListIterator(i);
 }
 
+// returns matching entry if exists
+_Entry * _BucketContainsKey(_Bucket * bucket, void * key, KeysAreEqualFunc keyJudge) {
+	if (!bucket || !key || !keyJudge)
+		return NULL;
+
+	ListIterator * i = MakeListIterator(bucket->entries);
+	void * found = NULL;
+	_Entry * e = GetCurrentFromIterator(i);
+	while (e != NULL && !found) {
+		if (keyJudge(e->key, key) == 1) {
+			found = e;
+		}
+		e = AdvanceAndGetFromIterator(i);
+	}
+	DestroyListIterator(i);
+	return found;
+}
+
+// returns matching entry if exists
+_Entry * _BucketContainsValue(_Bucket * bucket, void * value, ValuesAreEqualFunc valueJudge) {
+	if (!bucket || !value || !valueJudge)
+		return NULL;
+
+	ListIterator * i = MakeListIterator(bucket->entries);
+	void * found = 0;
+	_Entry * e = GetCurrentFromIterator(i);
+	while (e != NULL && !found) {
+		if (valueJudge(e->value, value) == 1) {
+			found = e;
+		}
+		e = AdvanceAndGetFromIterator(i);
+	}
+	DestroyListIterator(i);
+	return found;
+}
+
 // returns copied value, do not free
 void * _AddToBucket(_Bucket * bucket, void * copiedKey, void * copiedValue) {
 	if (!bucket || !copiedKey || !copiedValue)
@@ -146,61 +171,16 @@ void * _AddToBucket(_Bucket * bucket, void * copiedKey, void * copiedValue) {
 	return added->value;
 }
 
-// returns displaced value that should be displaced
-// void * _UpdateInBucket(_Bucket * bucket, void * key, KeysAreEqualFunc keyComparer, void * updatedValue) {
-// 	if (!bucket || !key || !keyComparer || !updatedValue)
-// 		return NULL;
-
-// 	ListIterator * i = MakeListIterator(bucket->entries);
-
-// 	_Entry * e = GetCurrentFromIterator(i);
-// 	void * oldValue = NULL;
-// 	while (e != NULL && oldValue == NULL) {
-// 		if (keyComparer(e->key, key) == 1) {
-// 			oldValue = e->value;
-// 			e->value = updatedValue;
-// 		}
-// 		e = AdvanceAndGetFromIterator(i);
-// 	}
-// 	DestroyListIterator(i);
-
-// 	return oldValue;
-// }
-
-// returns matching entry if exists
-_Entry * _BucketContainsKey(_Bucket * bucket, void * key, KeysAreEqualFunc keyComparer) {
+_Entry * _ExtractFromBucket(_Bucket * bucket, void * key, KeysAreEqualFunc keyComparer) {
 	if (!bucket || !key || !keyComparer)
 		return NULL;
 
-	ListIterator * i = MakeListIterator(bucket->entries);
-	void * found = NULL;
-	_Entry * e = GetCurrentFromIterator(i);
-	while (e != NULL && !found) {
-		if (keyComparer(e->key, key) == 1) {
-			found = e;
-		}
-		e = AdvanceAndGetFromIterator(i);
-	}
-	DestroyListIterator(i);
-	return found;
-}
+	// note: this approach of manually comparing pointers works because the ListIterator
+	// iterates over private contents. If the list iterator returned copies,
+	// this function would break hard.
 
-// returns matching entry if exists
-_Entry * _BucketContainsValue(_Bucket * bucket, void * value, ValuesAreEqualFunc valueComparer) {
-	if (!bucket || !value || !valueComparer)
-		return NULL;
-
-	ListIterator * i = MakeListIterator(bucket->entries);
-	void * found = 0;
-	_Entry * e = GetCurrentFromIterator(i);
-	while (e != NULL && !found) {
-		if (valueComparer(e->value, value) == 1) {
-			found = e;
-		}
-		e = AdvanceAndGetFromIterator(i);
-	}
-	DestroyListIterator(i);
-	return found;
+	_Entry * found = _BucketContainsKey(bucket, key, keyComparer);
+	return (_Entry *)ExtractFromList(bucket->entries, &_ComparePointers, found);
 }
 
 /* --- external Map --- */
@@ -249,21 +229,62 @@ void * AddToHashMap(HashMap * m, void * key, void * value) {
 
 	_HashMap * map = (_HashMap *)m;
 	_Bucket * bucket = _HashToBucket(map, key);
-	void * modifiedValue = map->valueCopier(value);
+	void * valueCopy = map->valueCopier(value);
 
 	_Entry * entry = _BucketContainsKey(bucket, key, map->keyJudge);
 	if (entry != NULL) {
 		map->valueDestroyer(entry->value);
-		entry->value = modifiedValue;
+		entry->value = valueCopy;
 	} else {
 		map->size++;
-		_AddToBucket(bucket, map->keyCopier(key), modifiedValue);
+		_AddToBucket(bucket, map->keyCopier(key), valueCopy);
 	}
 
-	return modifiedValue;
+	return valueCopy;
 }
 
-void PrintHashMap(HashMap * m, HashTableApplyFunc printer) {
+void * GetValueFromHashMap(HashMap * m, void * key) {
+	if (!m || !key)
+		return NULL;
+
+	_HashMap * map = (_HashMap *)m;
+	_Bucket * bucket = _HashToBucket(map, key);
+	return _BucketContainsKey(bucket, key, map->keyJudge);
+}
+
+int ContainsKey(HashMap * map, void * key) {
+	return (GetValueFromHashMap(map, key) != NULL) ? 1 : 0;
+}
+
+void * ExtractFromHashMap(HashMap * m, void * key) {
+	if (!m || !key)
+		return NULL;
+
+	_HashMap * map = (_HashMap *)m;
+	_Bucket * bucket = _HashToBucket(map, key);
+
+	_Entry * extracted = _ExtractFromBucket(bucket, key, map->keyJudge);
+	void * value = NULL;
+	if (extracted != NULL) {
+		map->size--;
+		value = extracted->value;
+		extracted->value = NULL;
+		_DestroyEntry(extracted, map->keyDestroyer, map->valueDestroyer);
+	}
+	return value;
+}
+
+void HashMapApply(HashMap * m, HashMapApplyFunc f) {
+	if (!m || !f)
+		return;
+
+	_HashMap * map = (_HashMap *)m;
+	for (int i = 0; i < map->totalBuckets; i++) {
+		_BucketApply(map->buckets[i], f);
+	}
+}
+
+void PrintHashMap(HashMap * m, HashMapApplyFunc printer) {
 	if (!m || !printer)
 		return;
 
