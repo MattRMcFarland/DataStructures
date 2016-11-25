@@ -10,5 +10,5 @@ char * toString(void * str);
 void squasher(void * string);
 void squashStrStr(void * k, void * v);
 
-#endif // STRING_HELPER_H
+#endif // STRING_HELPER_H 
 

@@ -51,7 +51,6 @@ int main() {
 	/*
 	 * Test error cases for addition and retrieval of keys
 	 */
-
 	shouldBe_Int(GetHashMapSize(NULL), -1);
 
 	shouldBe_Str((char *)AddToHashMap(map, "null", NULL), NULL);
@@ -83,7 +82,6 @@ int main() {
 	/* 
 	 * Test HashMap Iteration
 	 */
-
 	int expected = size;
 	HashMapIterator * iterator = NewHashMapIterator(map);
 	char * curKey = NULL;
@@ -106,5 +104,10 @@ int main() {
 	HashMapApply(map, &squashStrStr);
 	PrintHashMap(map, &printStr, &printStr);
 
+	/* 
+	 * Clean up!
+	 */
 	DestroyHashMap(map);
+
+	printf("HashMap Tests succeeded!\n");
 }

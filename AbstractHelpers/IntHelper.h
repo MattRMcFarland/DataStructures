@@ -4,6 +4,7 @@
 #include "../List/List.h"
 
 void * myIntDup(void * integer);
+// use `safeFree` in StringHelper for destruction
 int myIntIsEqual(void * testInteger, void * targetInteger);
 
 // NULL is considered LEAST value possible
@@ -14,4 +15,4 @@ void printIntList(List * list);
 
 void incInt(void * integer);
 
-#endif // INT_HELPER_H
+#endif // INT_HELPER_H 

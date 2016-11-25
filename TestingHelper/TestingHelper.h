@@ -2,6 +2,7 @@
 #define TESTING_HELPER_H
 
 void shouldBe_Int(int testingVal, int targetVal);
+void shouldBe_IntPtr(int * testingVal, int targetVal);
 
 void shouldBe_Str(char * testingStr, char * targetStr);
 

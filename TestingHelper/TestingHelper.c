@@ -9,6 +9,14 @@ void shouldBe_Int(int testingVal, int targetVal) {
 	assert(testingVal == targetVal);
 }
 
+void shouldBe_IntPtr(int * testingVal, int targetVal) {
+	if (testingVal == NULL && targetVal == 0x00)
+		return;
+	assert(testingVal);
+	assert (*testingVal == targetVal);
+}
+
+
 void shouldBe_Str(char * testingStr, char * targetStr) {
 	if (testingStr == NULL && targetStr == NULL)
 		return;

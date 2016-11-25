@@ -51,7 +51,7 @@ void DestroyHashMap(HashMap * map);
 int GetHashMapSize(HashMap * map);
 
 /* 
- * -- AddToHashmap --
+ * -- AddToHashMap --
  * paranoidly returns added value (NULL on failure)
  * if hashmap already contains key, then the old value is destroyed
  * and replaced with the new value

@@ -354,14 +354,6 @@ typedef struct _HashMapIterator {
 	ValueDestroyFunc valueDestroyer;
 } _HashMapIterator;
 
-// TODO -- remove me!
-void EntryPrinter(void * e) {
-	if (!e)
-		return;
-	_Entry * entry = (_Entry *)e;
-	printf("%s -> %s", (char *)entry->key, (char *)entry->value);
-}
-
 HashMapIterator * NewHashMapIterator(HashMap * m) {
 	if (!m)
 		return NULL;
