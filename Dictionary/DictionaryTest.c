@@ -42,5 +42,31 @@ int main() {
 	shouldBe_IntPtr((int *)Lookup(dictionary, "Not There"), 0x00);
 	PrintDictionary(dictionary, &printInt);
 
+	/*
+	 * Test an age update
+	 */
+	int newAge = 99;
+	shouldBe_IntPtr((int *)AddDefinition(dictionary, "Matt", &newAge), newAge);
+	shouldBe_IntPtr((int *)Lookup(dictionary, "Matt"), newAge);
+	shouldBe_Int(GetDictionarySize(dictionary), size);
+	PrintDictionary(dictionary, &printInt);
 
+	/* 
+	 * Test age extraction
+	 */
+	shouldBe_IntPtr((int *)RemoveDefinition(dictionary, "Not There"), 0x00);
+	int * extracted = (int *)RemoveDefinition(dictionary, "Andrew");
+	shouldBe_IntPtr(extracted, ages[1]);
+	free(extracted);
+	shouldBe_Int(GetDictionarySize(dictionary), --size);
+	shouldBe_Int(IsDefined(dictionary, "Andrew"), 0);
+	shouldBe_IntPtr((int *)Lookup(dictionary, "Andrew"), 0x00);
+	PrintDictionary(dictionary, &printInt);
+
+	/*
+	 * clean up
+	 */
+	DestroyDictionary(dictionary);
+
+	printf("Dictionary Tests Successful!\n\n");
 }
