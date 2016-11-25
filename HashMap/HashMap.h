@@ -17,8 +17,7 @@ typedef int (*ValuesAreEqualFunc)(void * value1, void * value2);
 typedef unsigned (*HashFunc)(void * element);
 typedef void (*HashMapApplyFunc)(void * key, void * value);
 
-HashMap * 
-NewHashMap(
+HashMap * NewHashMap(
 	KeyCopyFunc kcf, 
 	ValueCopyFunc vcf,
 	KeyDestroyFunc kdf,
@@ -65,12 +64,6 @@ int ContainsKey(HashMap * map, void * key);
  */
 void * ExtractFromHashMap(HashMap * map, void * key);
 
-
-
-// creates list of keys
-// List * GetKeyList(HashMap * map);
-// List * GetValueList(HashMap * map);
-
 void HashMapApply(HashMap * map, HashMapApplyFunc f);
 void PrintHashMap(HashMap * map, HashMapApplyFunc printer);
 
@@ -86,7 +79,7 @@ void GetHashMapIteratorCurrent(
 	void ** keyPlaceholder, 
 	void ** valuePlaceholder);
 
-void * AdvanceAndGetFromHashMapIterator(
+void AdvanceAndGetFromHashMapIterator(
 	HashMapIterator * iterator, 
 	void ** keyPlaceholder, 
 	void ** valuePlaceholder);
