@@ -56,7 +56,7 @@ _Entry * _FormEntry(void * copiedKey, void * copiedValue) {
 }
 
 void _DestroyEntry(_Entry * entry, KeyDestroyFunc keyDestroyer, ValueDestroyFunc valueDestroyer) {
-	if (!e || !keyDestroyer || !valueDestroyer)
+	if (!entry || !keyDestroyer || !valueDestroyer)
 		return;
 	keyDestroyer(entry->key);
 	valueDestroyer(entry->value);
@@ -113,10 +113,10 @@ _Bucket * _MakeBucket() {
 	return new;
 }
 
-void _DestroyBucket(_Bucket * bucket) {
+void _DestroyBucket(_Bucket * bucket, KeyDestroyFunc keyDestroyer, ValueDestroyFunc valueDestroyer) {
 	if (!bucket)
 		return;
-	DestroyList(bucket->entries);
+	_DestroyEntryList(bucket->entries, keyDestroyer, valueDestroyer);
 	free(bucket);
 	return;
 }
@@ -144,24 +144,6 @@ _Entry * _BucketContainsKey(_Bucket * bucket, void * key, KeysAreEqualFunc keyJu
 	_Entry * e = GetCurrentFromIterator(i);
 	while (e != NULL && !found) {
 		if (keyJudge(e->key, key) == 1) {
-			found = e;
-		}
-		e = AdvanceAndGetFromIterator(i);
-	}
-	DestroyListIterator(i);
-	return found;
-}
-
-// returns matching entry if exists
-_Entry * _BucketContainsValue(_Bucket * bucket, void * value, ValuesAreEqualFunc valueJudge) {
-	if (!bucket || !value || !valueJudge)
-		return NULL;
-
-	ListIterator * i = MakeListIterator(bucket->entries);
-	void * found = 0;
-	_Entry * e = GetCurrentFromIterator(i);
-	while (e != NULL && !found) {
-		if (valueJudge(e->value, value) == 1) {
 			found = e;
 		}
 		e = AdvanceAndGetFromIterator(i);
@@ -202,12 +184,12 @@ List * _CopyBucketEntries(_Bucket * bucket, KeyCopyFunc keyCopier, ValueCopyFunc
 	ListIterator * i = MakeListIterator(bucket->entries);
 	_Entry * e = GetCurrentFromIterator(i);
 	while (e != NULL) {
-		AppendToList(copies, _FormEntry(keyCopier(e->key), alueCopier(e->value))
+		AppendToList(copies, _FormEntry(keyCopier(e->key), valueCopier(e->value)));
 		e = AdvanceAndGetFromIterator(i);
 	}
 	DestroyListIterator(i);
 
-	return copies
+	return copies;
 }
 
 /* --- external Map --- */
@@ -247,6 +229,18 @@ HashMap * NewHashMap(
 	}
 
 	return (HashMap *)map;
+}
+
+void DestroyHashMap(HashMap * m) {
+	if (!m)
+		return;
+
+	_HashMap * map = (_HashMap *)m;
+	for (int i = 0; i < map->totalBuckets; i++) {
+		_DestroyBucket(map->buckets[i]);
+	}
+	free(map->buckets);
+	free(map);
 }
 
 void * AddToHashMap(HashMap * m, void * key, void * value) {
@@ -365,7 +359,7 @@ void DestroyHashMapIterator(HashMapIterator * i) {
 
 	_HashMapIterator * hmi = (_HashMapIterator *)i;
 	DestroyListIterator(hmi->iterator);
-	_DestroyEntryList(hmi->entries);
+	_DestroyEntryList(hmi->entries, hmi->keyDestroyer, hmi->valueDestroyer);
 	free(hmi);
 	return;
 }
@@ -375,11 +369,11 @@ void GetHashMapIteratorCurrent(
 	void ** keyPlaceholder, 
 	void ** valuePlaceholder) 
 {
-	if (!iterator || !keyPlaceholder || !valuePlaceholder)
+	if (!i || !keyPlaceholder || !valuePlaceholder)
 		return;
 
 	_HashMapIterator * hmi = (_HashMapIterator *)i;
-	_Entry * current = (_Entry *)GetCurrentFromIterator(hmi);
+	_Entry * current = (_Entry *)GetCurrentFromIterator(hmi->iterator);
 	*keyPlaceholder = current->key;
 	*valuePlaceholder = current->value;
 }
@@ -393,7 +387,7 @@ void AdvanceAndGetFromHashMapIterator(
 		return;
 
 	_HashMapIterator * hmi = (_HashMapIterator *)i;
-	_Entry * current = (_Entry *)AdvanceAndGetFromIterator(hmi);
+	_Entry * current = (_Entry *)AdvanceAndGetFromIterator(hmi->iterator);
 	*keyPlaceholder = current->key;
 	*valuePlaceholder = current->value;
 }

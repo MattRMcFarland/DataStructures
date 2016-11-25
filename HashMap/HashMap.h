@@ -17,6 +17,11 @@ typedef int (*ValuesAreEqualFunc)(void * value1, void * value2);
 typedef unsigned (*HashFunc)(void * element);
 typedef void (*HashMapApplyFunc)(void * key, void * value);
 
+/*
+ * -- NewHashMap --
+ * make a HashMap by providing a bunch of functions for the type
+ * of data that you'd like to handle. 
+ */
 HashMap * NewHashMap(
 	KeyCopyFunc kcf, 
 	ValueCopyFunc vcf,
@@ -27,6 +32,10 @@ HashMap * NewHashMap(
 	ValuesAreEqualFunc vaef,
 	unsigned int slots);
 
+/*
+ * -- DestroyHashMap --
+ * self-explanatory
+ */
 void DestroyHashMap(HashMap * map);
 
 /* 
@@ -52,7 +61,10 @@ void * AddToHashMap(HashMap * map, void * key, void * value);
  */
 void * GetValueFromHashMap(HashMap * map, void * key);
 
-// returns 1 if hashmap contains key, 0 otherwise
+/*
+ * -- ContainsKey --
+ * returns 1 if hashmap contains key, 0 otherwise
+ */
 int ContainsKey(HashMap * map, void * key);
 
 /*
@@ -64,7 +76,20 @@ int ContainsKey(HashMap * map, void * key);
  */
 void * ExtractFromHashMap(HashMap * map, void * key);
 
+/*
+ * -- HashMapApply --
+ * caller beware here! This will be applied to each key-value
+ * mapping. You can seriously goof up my careful memory management
+ * if you aren't careful.
+ */
 void HashMapApply(HashMap * map, HashMapApplyFunc f);
+
+/*
+ * -- PrintHashMap --
+ * this is a wrapper about HashMapApply. If you provide a way to print
+ * the key and the value, this function will print the map in a 
+ * nice JSON'esque way.
+ */
 void PrintHashMap(HashMap * map, HashMapApplyFunc printer);
 
 /* -- iterate over contents of hashmap -- */
