@@ -27,6 +27,7 @@ Dictionary.o: Dictionary.c Dictionary.h
 
 clean:
 	rm -rf DictionaryTest
+	rm -rf Dictionary.o
 	rm -rf ../HashMap/HashMap.o
 	rm -rf ../List/List.o 
 	rm -rf ../TestingHelper/TestingHelper.o
