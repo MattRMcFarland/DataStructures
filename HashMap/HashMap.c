@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include "HashMap.h"
-#include "../AbstractHelpers/NotImplemented.h"
 
 /* --- Internal Structure Definition --- */
 
@@ -134,6 +133,23 @@ void _BucketApply(_Bucket * bucket, HashMapApplyFunc f) {
 	DestroyListIterator(i);
 }
 
+void _BucketPrint(_Bucket * bucket, Printer keyPrinter, Printer valuePrinter) {
+	if (!bucket || !keyPrinter || !valuePrinter)
+		return;
+
+	ListIterator * i = MakeListIterator(bucket->entries);
+	_Entry * e = GetCurrentFromIterator(i);
+	while (e != NULL) {
+		printf("{");
+		keyPrinter(e->key);
+		printf(" -> ");
+		valuePrinter(e->value);
+		printf("} ");		
+		e = AdvanceAndGetFromIterator(i);
+	}
+	DestroyListIterator(i);
+}
+
 // returns matching entry if exists
 _Entry * _BucketContainsKey(_Bucket * bucket, void * key, KeysAreEqualFunc keyJudge) {
 	if (!bucket || !key || !keyJudge)
@@ -237,10 +253,18 @@ void DestroyHashMap(HashMap * m) {
 
 	_HashMap * map = (_HashMap *)m;
 	for (int i = 0; i < map->totalBuckets; i++) {
-		_DestroyBucket(map->buckets[i]);
+		_DestroyBucket(map->buckets[i], map->keyDestroyer, map->valueDestroyer);
 	}
 	free(map->buckets);
 	free(map);
+}
+
+
+int GetHashMapSize(HashMap * m) {
+	if (!m)
+		return -1;
+	_HashMap * map = (_HashMap *)m;
+	return map->size;
 }
 
 void * AddToHashMap(HashMap * m, void * key, void * value) {
@@ -269,7 +293,8 @@ void * GetValueFromHashMap(HashMap * m, void * key) {
 
 	_HashMap * map = (_HashMap *)m;
 	_Bucket * bucket = _HashToBucket(map, key);
-	return _BucketContainsKey(bucket, key, map->keyJudge);
+	_Entry * entry = _BucketContainsKey(bucket, key, map->keyJudge);
+	return (entry != NULL) ? entry->value : NULL;
 }
 
 int ContainsKey(HashMap * map, void * key) {
@@ -304,16 +329,15 @@ void HashMapApply(HashMap * m, HashMapApplyFunc f) {
 	}
 }
 
-void PrintHashMap(HashMap * m, HashMapApplyFunc printer) {
-	if (!m || !printer)
+void PrintHashMap(HashMap * m, Printer keyPrinter, Printer valuePrinter) {
+	if (!m || !keyPrinter || !valuePrinter)
 		return;
 
 	_HashMap * map = (_HashMap *)m;
 	printf("\nMap Print: {Size: %d, Slots: %d}\n", map->size, map->totalBuckets);
 	for (int i = 0; i < map->totalBuckets; i++) {
-		printf("-- Bucket %d --\n",i);
-		printf("\t");
-		_BucketApply(map->buckets[i], printer);
+		printf("\tBucket %d : ",i);
+		_BucketPrint(map->buckets[i], keyPrinter, valuePrinter);
 		printf("\n");
 	}
 }
@@ -329,6 +353,14 @@ typedef struct _HashMapIterator {
 	KeyDestroyFunc keyDestroyer;
 	ValueDestroyFunc valueDestroyer;
 } _HashMapIterator;
+
+// TODO -- remove me!
+void EntryPrinter(void * e) {
+	if (!e)
+		return;
+	_Entry * entry = (_Entry *)e;
+	printf("%s -> %s", (char *)entry->key, (char *)entry->value);
+}
 
 HashMapIterator * NewHashMapIterator(HashMap * m) {
 	if (!m)
@@ -346,7 +378,7 @@ HashMapIterator * NewHashMapIterator(HashMap * m) {
  	hmi->entries = NewList(&_FalseAbstractCopy);
  	for (int i = 0; i < map->totalBuckets; i++) {
  		List * copies = _CopyBucketEntries(map->buckets[i], map->keyCopier, map->valueCopier);
- 		CatLists(hmi->entries, copies);
+ 		hmi->entries = CatLists(hmi->entries, copies); 
  	}
 
  	hmi->iterator = MakeListIterator(hmi->entries);
@@ -374,8 +406,13 @@ void GetHashMapIteratorCurrent(
 
 	_HashMapIterator * hmi = (_HashMapIterator *)i;
 	_Entry * current = (_Entry *)GetCurrentFromIterator(hmi->iterator);
-	*keyPlaceholder = current->key;
-	*valuePlaceholder = current->value;
+	if (current) {
+		*keyPlaceholder = current->key;
+		*valuePlaceholder = current->value;
+	} else {
+		*keyPlaceholder = *valuePlaceholder = NULL;
+	}
+
 }
 
 void AdvanceAndGetFromHashMapIterator(
@@ -388,6 +425,10 @@ void AdvanceAndGetFromHashMapIterator(
 
 	_HashMapIterator * hmi = (_HashMapIterator *)i;
 	_Entry * current = (_Entry *)AdvanceAndGetFromIterator(hmi->iterator);
-	*keyPlaceholder = current->key;
-	*valuePlaceholder = current->value;
+	if (current) {
+		*keyPlaceholder = current->key;
+		*valuePlaceholder = current->value;
+	} else {
+		*keyPlaceholder = *valuePlaceholder = NULL;
+	}
 }

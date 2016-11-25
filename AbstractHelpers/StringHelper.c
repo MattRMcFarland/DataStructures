@@ -47,10 +47,21 @@ void printStr(void * str) {
 	printf("%s", (char *)str);
 }
 
+void printStrStrMap(void * key, void * value) {
+	char * k = (char *) key;
+	char * v = (char *) value;
+	printf(" {Key: %s, Value: %s} ", k, v);
+}
+
 void squasher(void * string) {
 	if (!string)
 		return;
 	char * s = (char *)string;
 	if (strlen(s) > 0)
 		s[0] = '_';
+}
+
+void squashStrStr(void * k, void * v) {
+	squasher(k);
+	squasher(v);
 }

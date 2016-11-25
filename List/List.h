@@ -46,6 +46,8 @@ void * PeekHead(List * list);
 void * PeekTail(List * list);
 
 // claims list2!
+// example:
+//	List * newList = CatList(list1, list2);
 List * CatLists(List * list1, List * list2);
 
 // and claims list argument and returns sorted list copy

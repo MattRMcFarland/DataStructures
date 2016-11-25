@@ -5,17 +5,23 @@
 
 typedef struct HashMap HashMap;
 
+// functions that return a copy of the key / value
 typedef void * (*KeyCopyFunc)(void * key);
 typedef void * (*ValueCopyFunc)(void * value);
 
+// functions that will deallocate memory for key / value
 typedef void (*KeyDestroyFunc)(void * key);
 typedef void (*ValueDestroyFunc)(void * value);
 
+// comparision functions between keys and values
 typedef int (*KeysAreEqualFunc)(void * key1, void * key2);
 typedef int (*ValuesAreEqualFunc)(void * value1, void * value2);
 
 typedef unsigned (*HashFunc)(void * element);
 typedef void (*HashMapApplyFunc)(void * key, void * value);
+
+// pass a function that prints element appropriately
+typedef void (*Printer)(void * element);
 
 /*
  * -- NewHashMap --
@@ -37,6 +43,12 @@ HashMap * NewHashMap(
  * self-explanatory
  */
 void DestroyHashMap(HashMap * map);
+
+/*
+ * -- GetHashMapSize --
+ * returns the number of mappings, -1 on error
+ */
+int GetHashMapSize(HashMap * map);
 
 /* 
  * -- AddToHashmap --
@@ -90,7 +102,7 @@ void HashMapApply(HashMap * map, HashMapApplyFunc f);
  * the key and the value, this function will print the map in a 
  * nice JSON'esque way.
  */
-void PrintHashMap(HashMap * map, HashMapApplyFunc printer);
+void PrintHashMap(HashMap * map, Printer keyPrinter, Printer valuePrinter);
 
 /* -- iterate over contents of hashmap -- */
 
