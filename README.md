@@ -10,7 +10,10 @@ This directory contains a faily robust implementation of an abstract, Linked-Lis
 This directory contains an abstract implementation of the HashTable. (Table! not Map.)
 
 ## HashMap
-This is a fully abstract-key to abstract-value mapping. Still a work in progress! (This makes me miss Scala a lot :( )
+This is a fully abstract-key to abstract-value mapping. Includes addition / updating, extraction, and iteration.
+
+## Dictionary
+This is an overlay on HashMap. It has string keys by default and abstract values. Pretty easy to use. Same functionality as HashMap without the iterator.
 
 ## Queue
 Simple overlay on List to implement a Queue.
