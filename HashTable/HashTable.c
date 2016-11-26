@@ -4,8 +4,6 @@
 #include "../List/List.h"
 #include "HashTable.h"
 
-#define DEFAULT_TOTALBUCKETS 1000;
-
 typedef struct _Bucket {
 	List * entries;
 } _Bucket;
@@ -27,10 +25,10 @@ unsigned DefaultHashFunction(void * element) {
 	return (unsigned)(long)element;
 }
 
-static _Bucket * _HashToBucket(_HashTable * HashTable, void * element) {
-	if (!HashTable || !element)
+static _Bucket * _HashToBucket(_HashTable * hashtable, void * element) {
+	if (!hashtable || !element)
 		return NULL;
-	return HashTable->buckets[HashTable->hasher(element) % HashTable->totalBuckets];
+	return hashtable->buckets[hashtable->hasher(element) % hashtable->totalBuckets];
 }
 
 /* --- internal Bucket --- */
@@ -118,12 +116,13 @@ static _UnfilledHashTable * _SetEmptyHashTable(
 	AreEqualFunc judger,
 	int totalBuckets) {
 
-	if (!unset || !copier || !destroyer || !hasher || !judger || totalBuckets < 0)
+	if (!unset || !copier || !destroyer || !judger || totalBuckets < 0)
 		return NULL;
 
 	_HashTable * hashtable = (_HashTable *)unset;
 	hashtable->copier = copier;
 	hashtable->destroyer = destroyer;
+	hashtable->hasher = (hasher != NULL) ? hasher : &DefaultHashFunction;
 	hashtable->hasher = hasher;
 	hashtable->judger = judger;
 	hashtable->totalBuckets = totalBuckets;
@@ -357,7 +356,7 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 	return (HashTable *)copy;
 }
 
-void PrintHashTable(HashTable * HashTable, HashTableApplyFunc printer) {
+void PrintHashTable(HashTable * HashTable, ApplyFunc printer) {
 	if (!HashTable || !printer)
 		return;
 	_HashTable * h = (_HashTable *)HashTable;

@@ -8,7 +8,6 @@ typedef int (*AreEqualFunc)(void * element1, void * element2); // returns 1 if e
 typedef void (*ApplyFunc)(void * element);
 
 typedef unsigned (*HashFunc)(void * element);
-typedef void (*HashTableApplyFunc)(void * element);
 typedef void (*HashMapApplyFunc)(void * key, void * value);
 
 
