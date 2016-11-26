@@ -5,7 +5,7 @@
 
 typedef struct Queue Queue;
 
-Queue * MakeQueue(CopyInFunc);
+Queue * MakeQueue(CopyFunc copier, DestroyFunc destroyer);
 void DestroyQueue(Queue * queue);
 
 // paranoidly returns enqueued element -- do not claim!

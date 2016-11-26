@@ -2,7 +2,7 @@
 #define ABSTRACT_FUNCS_H
 
 typedef void * (*CopyFunc)(void * element);
-typedef void (*DestroyerFunc)(void * element);
+typedef void (*DestroyFunc)(void * element);
 
 typedef int (*AreEqualFunc)(void * element1, void * element2); // returns 1 if equal
 typedef void (*ApplyFunc)(void * element);

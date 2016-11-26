@@ -15,13 +15,13 @@ typedef struct _Bucket {
 } _Bucket;
 
 typedef struct _HashMap {
-	KeyCopyFunc keyCopier;
-	ValueCopyFunc valueCopier;
-	KeyDestroyFunc keyDestroyer;
-	ValueDestroyFunc valueDestroyer;
+	CopyFunc keyCopier;
+	CopyFunc valueCopier;
+	DestroyFunc keyDestroyer;
+	DestroyFunc valueDestroyer;
 	HashFunc hasher;
-	KeysAreEqualFunc keyJudge;
-	ValuesAreEqualFunc valueJudge;
+	AreEqualFunc keyJudge;
+	AreEqualFunc valueJudge;
 
 	int size;
 	int totalBuckets;
@@ -54,7 +54,7 @@ _Entry * _FormEntry(void * copiedKey, void * copiedValue) {
 	return new;
 }
 
-void _DestroyEntry(_Entry * entry, KeyDestroyFunc keyDestroyer, ValueDestroyFunc valueDestroyer) {
+void _DestroyEntry(_Entry * entry, DestroyFunc keyDestroyer, DestroyFunc valueDestroyer) {
 	if (!entry || !keyDestroyer || !valueDestroyer)
 		return;
 	keyDestroyer(entry->key);
@@ -63,7 +63,7 @@ void _DestroyEntry(_Entry * entry, KeyDestroyFunc keyDestroyer, ValueDestroyFunc
 	return;
 }
 
-void _DestroyEntryList(List * list, KeyDestroyFunc keyDestroyer, ValueDestroyFunc valueDestroyer) {
+void _DestroyEntryList(List * list, DestroyFunc keyDestroyer, DestroyFunc valueDestroyer) {
 	if (!list || !keyDestroyer || !valueDestroyer)
 		return;
 
@@ -81,7 +81,12 @@ void * _FalseAbstractCopy(void * copiedEntry) {
 	return copiedEntry;
 }
 
-_Entry * _CopyEntry(_Entry * entry, KeyCopyFunc kcf, ValueCopyFunc vcf) {
+void _BreakingDestroy(void * data) {
+	fprintf(stderr,"ListDestroy is attempting to delete an entry -- This should never be called!\n");
+	assert(0);
+}
+
+_Entry * _CopyEntry(_Entry * entry, CopyFunc kcf, CopyFunc vcf) {
 	if (!entry)
 		return NULL;
 	_Entry * new = (_Entry *)calloc(1,sizeof(_Entry));
@@ -91,7 +96,7 @@ _Entry * _CopyEntry(_Entry * entry, KeyCopyFunc kcf, ValueCopyFunc vcf) {
 	return new;
 }
 
-void * _UpdateEntryValue(_Entry * entry, ValueDestroyFunc valueDestroyer, void * copiedValue) {
+void * _UpdateEntryValue(_Entry * entry, DestroyFunc valueDestroyer, void * copiedValue) {
 	if (!entry || !valueDestroyer || !copiedValue)
 		return NULL;
 	valueDestroyer(entry->value);
@@ -108,11 +113,13 @@ int _ComparePointers(void * e1, void * e2) {
 _Bucket * _MakeBucket() {
 	_Bucket * new = (_Bucket *)calloc(1, sizeof(_Bucket));
 	assert(new);
-	new->entries = NewList(&_FalseAbstractCopy);
+
+	// I'm using these lists in a super hacky way! Gross!
+	new->entries = NewList(&_FalseAbstractCopy, &_BreakingDestroy);
 	return new;
 }
 
-void _DestroyBucket(_Bucket * bucket, KeyDestroyFunc keyDestroyer, ValueDestroyFunc valueDestroyer) {
+void _DestroyBucket(_Bucket * bucket, DestroyFunc keyDestroyer, DestroyFunc valueDestroyer) {
 	if (!bucket)
 		return;
 	_DestroyEntryList(bucket->entries, keyDestroyer, valueDestroyer);
@@ -133,7 +140,7 @@ void _BucketApply(_Bucket * bucket, HashMapApplyFunc f) {
 	DestroyListIterator(i);
 }
 
-void _BucketPrint(_Bucket * bucket, Printer keyPrinter, Printer valuePrinter) {
+void _BucketPrint(_Bucket * bucket, ApplyFunc keyPrinter, ApplyFunc valuePrinter) {
 	if (!bucket || !keyPrinter || !valuePrinter)
 		return;
 
@@ -151,7 +158,7 @@ void _BucketPrint(_Bucket * bucket, Printer keyPrinter, Printer valuePrinter) {
 }
 
 // returns matching entry if exists
-_Entry * _BucketContainsKey(_Bucket * bucket, void * key, KeysAreEqualFunc keyJudge) {
+_Entry * _BucketContainsKey(_Bucket * bucket, void * key, AreEqualFunc keyJudge) {
 	if (!bucket || !key || !keyJudge)
 		return NULL;
 
@@ -178,7 +185,7 @@ void * _AddToBucket(_Bucket * bucket, void * copiedKey, void * copiedValue) {
 	return added->value;
 }
 
-_Entry * _ExtractFromBucket(_Bucket * bucket, void * key, KeysAreEqualFunc keyComparer) {
+_Entry * _ExtractFromBucket(_Bucket * bucket, void * key, AreEqualFunc keyComparer) {
 	if (!bucket || !key || !keyComparer)
 		return NULL;
 
@@ -191,11 +198,11 @@ _Entry * _ExtractFromBucket(_Bucket * bucket, void * key, KeysAreEqualFunc keyCo
 }
 
 // returns a copy list of _Entries in bucket
-List * _CopyBucketEntries(_Bucket * bucket, KeyCopyFunc keyCopier, ValueCopyFunc valueCopier) {
+List * _CopyBucketEntries(_Bucket * bucket, CopyFunc keyCopier, CopyFunc valueCopier) {
 	if (!bucket || !keyCopier || !valueCopier) 
 		return NULL;
 
-	List * copies = NewList(&_FalseAbstractCopy);
+	List * copies = NewList(&_FalseAbstractCopy, &_BreakingDestroy);
 
 	ListIterator * i = MakeListIterator(bucket->entries);
 	_Entry * e = GetCurrentFromIterator(i);
@@ -211,13 +218,13 @@ List * _CopyBucketEntries(_Bucket * bucket, KeyCopyFunc keyCopier, ValueCopyFunc
 /* --- external Map --- */
 
 HashMap * NewHashMap(
-	KeyCopyFunc kcf, 
-	ValueCopyFunc vcf,
-	KeyDestroyFunc kdf,
-	ValueDestroyFunc vdf,
+	CopyFunc kcf, 
+	CopyFunc vcf,
+	DestroyFunc kdf,
+	DestroyFunc vdf,
 	HashFunc hf, 
-	KeysAreEqualFunc kaef, 
-	ValuesAreEqualFunc vaef,
+	AreEqualFunc kaef, 
+	AreEqualFunc vaef,
 	unsigned int slots) 
 {
 
@@ -329,7 +336,7 @@ void HashMapApply(HashMap * m, HashMapApplyFunc f) {
 	}
 }
 
-void PrintHashMap(HashMap * m, Printer keyPrinter, Printer valuePrinter) {
+void PrintHashMap(HashMap * m, ApplyFunc keyPrinter, ApplyFunc valuePrinter) {
 	if (!m || !keyPrinter || !valuePrinter)
 		return;
 
@@ -348,10 +355,10 @@ typedef struct _HashMapIterator {
 	List * entries;
 	ListIterator * iterator;
 
-	KeyCopyFunc keyCopier;
-	ValueCopyFunc valueCopier;
-	KeyDestroyFunc keyDestroyer;
-	ValueDestroyFunc valueDestroyer;
+	CopyFunc keyCopier;
+	CopyFunc valueCopier;
+	DestroyFunc keyDestroyer;
+	DestroyFunc valueDestroyer;
 } _HashMapIterator;
 
 HashMapIterator * NewHashMapIterator(HashMap * m) {
@@ -367,7 +374,7 @@ HashMapIterator * NewHashMapIterator(HashMap * m) {
  	hmi->keyDestroyer = map->keyDestroyer;
  	hmi->valueDestroyer = map->valueDestroyer;
 
- 	hmi->entries = NewList(&_FalseAbstractCopy);
+ 	hmi->entries = NewList(&_FalseAbstractCopy, &_BreakingDestroy);
  	for (int i = 0; i < map->totalBuckets; i++) {
  		List * copies = _CopyBucketEntries(map->buckets[i], map->keyCopier, map->valueCopier);
  		hmi->entries = CatLists(hmi->entries, copies); 

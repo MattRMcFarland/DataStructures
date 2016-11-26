@@ -13,8 +13,8 @@ typedef struct _Node {
 typedef struct _List {
 	_Node * head, * tail;
 	int size;
-	void * (*copier)(void *);
-	void (*destroyer)(void *);
+	CopyFunc copier;
+	DestroyFunc destroyer;
 } _List;
 
 /* --- internal node functions --- */
@@ -33,7 +33,7 @@ _Node * _MakeNode(void * data, _Node * prev, _Node * next) {
 	return node;
 }
 
-void _DestroyNode(_Node * node, DestroyerFunc destroyer) {
+void _DestroyNode(_Node * node, DestroyFunc destroyer) {
 	if (!node)
 		return;
 	if (node->data && destroyer != NULL)
@@ -105,7 +105,7 @@ _UnsetList * _MakeEmptyList() {
 	return (_UnsetList *)list;
 }
 
-_List * _SetList(_UnsetList * list, CopyInFunc copier, DestroyerFunc destroyer) {
+_List * _SetList(_UnsetList * list, CopyFunc copier, DestroyFunc destroyer) {
 	if (!list || !copier || !destroyer)
 		return NULL;
 	_List * l = (_List *)list;
@@ -256,7 +256,7 @@ _UnsetList * _ArrayIntoList(void * array[], int length) {
 
 /* --- external functions --- */
 
-List * NewList(CopyInFunc copier, DestroyerFunc destroyer) {
+List * NewList(CopyFunc copier, DestroyFunc destroyer) {
 	if (!copier || !destroyer)
 		return NULL;
 	_List * new = _SetList(_MakeEmptyList(), copier, destroyer);
@@ -295,7 +295,7 @@ void * PutListHead(List * list, void * element) {
 	return _PutListHead(l, element);
 }
 
-int RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
+int RemoveFromList(List * list, AreEqualFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
 		return -1;
 
@@ -315,7 +315,7 @@ int RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	return removed;
 }
 
-void * ExtractFromList(List * list, ListSearchFunc searchFunc, void * key) {
+void * ExtractFromList(List * list, AreEqualFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
 		return NULL;
 
@@ -331,7 +331,7 @@ void * ExtractFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	return NULL;
 }
 
-int ListContains(List * list, ListSearchFunc searchFunc, void * key) {
+int ListContains(List * list, AreEqualFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
 		return -1;
 
@@ -346,7 +346,7 @@ int ListContains(List * list, ListSearchFunc searchFunc, void * key) {
 	return 0;
 }
 
-int ListCount(List * list, ListSearchFunc searchFunc, void * key) {
+int ListCount(List * list, AreEqualFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
 		return -1;
 
@@ -468,7 +468,7 @@ void ClearList(List * list) {
 	return;
 }
 
-void ListApply(List * list, ListApplyFunc f) {
+void ListApply(List * list, ApplyFunc f) {
 	if (!list || !f)
 		return;
 
@@ -480,7 +480,7 @@ void ListApply(List * list, ListApplyFunc f) {
 	}
 }
 
-void PrintList(List * list, ListApplyFunc elementPrinter) {
+void PrintList(List * list, ApplyFunc elementPrinter) {
 	if (!list || !elementPrinter)
 		return;
 	_List * l = (_List *)list;

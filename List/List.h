@@ -5,7 +5,7 @@
 
 typedef struct List List;
 
-List * NewList(CopyInFunc copier, DestroyerFunc destroyer);
+List * NewList(CopyFunc copier, DestroyFunc destroyer);
 void DestroyList(List * list);
 
 // returns -1 on error

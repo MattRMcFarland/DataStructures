@@ -6,7 +6,7 @@
 int main() {
 	printf("\nRunning Queue Tests\n");
 
-	Queue * queue = MakeQueue(&myStrdup);
+	Queue * queue = MakeQueue(&myStrdup, &safeFree);
 
 	shouldBe_Str(Enqueue(queue, NULL), (char *)NULL);
 

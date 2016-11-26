@@ -11,9 +11,9 @@ typedef struct Dictionary Dictionary;
  * ... aka a dictionary!
  */
 Dictionary * NewDictionary(
-	CopyFunc vcf, 
-	DestroyerFunc vdf,
-	AreEqualFunc vaef,
+	CopyFunc valueCopier, 
+	DestroyFunc valueDestroyer,
+	AreEqualFunc valueComparator,
 	unsigned int slots);
 
 /*

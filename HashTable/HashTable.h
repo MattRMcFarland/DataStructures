@@ -6,7 +6,12 @@
 
 typedef struct HashTable HashTable;
 
-HashTable * NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int hashSlots);
+HashTable * NewHashTable(
+	CopyFunc cf, 
+	DestroyFunc df, 
+	HashFunc hf, 
+	AreEqualFunc aef, 
+	unsigned int hashSlots);
 void DestroyHashTable(HashTable * hashtable);
 
 int HashTableSize(HashTable * hashtable);

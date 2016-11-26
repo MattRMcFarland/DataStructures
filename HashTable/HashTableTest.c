@@ -12,7 +12,7 @@ int main() {
 	 * test vanilla add, contains, extract, remove, size
 	 */
 
-	HashTable * hashtable = NewHashTable(&myStrdup, &hashPJW, &strIsEqual, 10);
+	HashTable * hashtable = NewHashTable(&myStrdup, &safeFree, &hashPJW, &strIsEqual, 10);
 	int size = 0;
 	shouldBe_Str(AddToHashTable(hashtable, "aa"), "aa"); size++;
 	shouldBe_Str(AddToHashTable(hashtable, "bb"), "bb"); size++;

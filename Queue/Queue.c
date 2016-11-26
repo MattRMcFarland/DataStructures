@@ -7,13 +7,13 @@ typedef struct _Queue {
 	List * contents;
 } _Queue;
 
-Queue * MakeQueue(CopyInFunc copier) {
+Queue * MakeQueue(CopyFunc copier, DestroyFunc destroyer) {
 	if (!copier)
 		return NULL;
 
 	_Queue * new = (_Queue *)calloc(1,sizeof(_Queue));
 	assert(new);
-	new->contents = NewList(copier);
+	new->contents = NewList(copier, destroyer);
 	return (Queue *)new;
 }
 

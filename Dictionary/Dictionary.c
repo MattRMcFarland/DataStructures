@@ -7,20 +7,20 @@
 
 Dictionary * NewDictionary(
 	CopyFunc valueCopier, 
-	DestroyerFunc valueDestroyer,
+	DestroyFunc valueDestroyer,
 	AreEqualFunc valueComparator,
 	unsigned int slots) 
 {
-	if (!vcf || !vdf || !vaef)
+	if (!valueCopier || !valueDestroyer || !valueComparator)
 		return NULL;
 	HashMap * dictionary = NewHashMap(
 		&myStrdup, 
-		vcf,
+		valueCopier,
 		&safeFree,
-		vdf,
+		valueDestroyer,
 		&hashPJW,
 		&strIsEqual,
-		vaef,
+		valueComparator,
 		slots);
 	return (Dictionary *)dictionary;
 }

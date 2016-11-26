@@ -14,8 +14,8 @@ typedef struct HashMap HashMap;
 HashMap * NewHashMap(
 	CopyFunc keyCopier, 
 	CopyFunc valueCopier,
-	DestroyerFunc keyDestroyer,
-	DestroyerFunc valueDestroyer,
+	DestroyFunc keyDestroyer,
+	DestroyFunc valueDestroyer,
 	HashFunc hf, 
 	AreEqualFunc keyComparator, 
 	AreEqualFunc valueComparator,

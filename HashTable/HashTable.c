@@ -13,6 +13,7 @@ typedef struct _Bucket {
 typedef struct _HashTable {
 
 	CopyFunc copier;
+	DestroyFunc destroyer;
 	HashFunc hasher;
 	AreEqualFunc judger;
 
@@ -36,10 +37,10 @@ static _Bucket * _HashToBucket(_HashTable * HashTable, void * element) {
 
 typedef void (*BucketApply)(_Bucket * bucket);
 
-static _Bucket * _MakeEmptyBucket(CopyFunc copier) {
+static _Bucket * _MakeEmptyBucket(CopyFunc copier, DestroyFunc destroyer) {
 	_Bucket * new = (_Bucket *)calloc(1,sizeof(_Bucket));
 	assert(new);
-	new->entries = NewList(copier);
+	new->entries = NewList(copier, destroyer);
 	return new;
 }
 
@@ -59,29 +60,29 @@ static void * _AddToBucket(_Bucket * bucket, void * element) {
 static void * _ExtractFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return NULL;
-	return ExtractFromList(bucket->entries, (ListSearchFunc)judger, key);
+	return ExtractFromList(bucket->entries, judger, key);
 }
 
 static int _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return 0;
-	return RemoveFromList(bucket->entries, (ListSearchFunc)judger, key);
+	return RemoveFromList(bucket->entries, judger, key);
 }
 
 static int _BucketContains(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
 		return -1;
-	return ListContains(bucket->entries, (ListSearchFunc)judger, key);
+	return ListContains(bucket->entries, judger, key);
 }
 
 static List * _GetBucketList(_Bucket * bucket) {
 	return (bucket != NULL) ? bucket->entries : NULL;
 }
 
-static _Bucket * _CopyBucket(_Bucket * bucket, CopyFunc copier) {
+static _Bucket * _CopyBucket(_Bucket * bucket, CopyFunc copier, DestroyFunc destroyer) {
 	if (!bucket)
 		return NULL;
-	_Bucket * copy = _MakeEmptyBucket(copier);
+	_Bucket * copy = _MakeEmptyBucket(copier, destroyer);
 	ListIterator * iterator = MakeListIterator(bucket->entries);
 	void * data = GetCurrentFromIterator(iterator);
 	while (data) {
@@ -92,10 +93,10 @@ static _Bucket * _CopyBucket(_Bucket * bucket, CopyFunc copier) {
 	return copy;
 }
 
-static void _PrintBucket(_Bucket * bucket, HashTableApplyFunc printer) {
+static void _PrintBucket(_Bucket * bucket, ApplyFunc printer) {
 	if (!bucket || !printer)
 		return;
-	PrintList(bucket->entries, (ListApplyFunc)printer);
+	PrintList(bucket->entries, printer);
 }
 
 /* --- internal HashTable --- */
@@ -104,23 +105,25 @@ typedef struct _UnsetHashTable _UnsetHashTable;
 typedef struct _UnfilledHashTable _UnfilledHashTable;
 
 static _UnsetHashTable * _MakeEmptyHashTable() {
-	_HashTable * new = (_HashTable *)calloc(1,sizeof(_HashTable));
+	_HashTable * new = (_HashTable *)calloc(1, sizeof(_HashTable));
 	assert(new);
 	return (_UnsetHashTable *) new;
 }
 
 static _UnfilledHashTable * _SetEmptyHashTable(
 	_UnsetHashTable * unset, 	
-	CopyFunc copier, 
+	CopyFunc copier,
+	DestroyFunc destroyer, 
 	HashFunc hasher, 
 	AreEqualFunc judger,
 	int totalBuckets) {
 
-	if (!unset || !copier || !hasher || !judger || totalBuckets < 0)
+	if (!unset || !copier || !destroyer || !hasher || !judger || totalBuckets < 0)
 		return NULL;
 
 	_HashTable * hashtable = (_HashTable *)unset;
 	hashtable->copier = copier;
+	hashtable->destroyer = destroyer;
 	hashtable->hasher = hasher;
 	hashtable->judger = judger;
 	hashtable->totalBuckets = totalBuckets;
@@ -135,7 +138,7 @@ static _HashTable * _FillHashTable(_UnfilledHashTable * unfilled) {
 	hashtable->buckets = (_Bucket **)calloc(hashtable->totalBuckets,sizeof(_Bucket *));
 	assert(hashtable->buckets);
 	for (int i = 0; i < hashtable->totalBuckets; i++) {
-		hashtable->buckets[i] = _MakeEmptyBucket(hashtable->copier);
+		hashtable->buckets[i] = _MakeEmptyBucket(hashtable->copier, hashtable->destroyer);
 	}
 	return hashtable;
 }
@@ -160,7 +163,7 @@ static void _ApplyToAllBuckets(_HashTable * hashtable, BucketApply apply) {
 static List * _HashTableToList(_HashTable * hashtable) {
 	if (!hashtable)
 		return NULL;
-	List * list = NewList(hashtable->copier);
+	List * list = NewList(hashtable->copier, hashtable->destroyer);
 	for (int i = 0; i < hashtable->totalBuckets; i++) {
 		list = CatLists(list,CopyList(_GetBucketList(hashtable->buckets[i])));
 	}
@@ -209,15 +212,17 @@ static void * _AdvanceAndGetFromHTI(_HashTableIterator * hti) {
 
 HashTable * NewHashTable(
 	CopyFunc cf, 
+	DestroyFunc df,
 	HashFunc hf, 
 	AreEqualFunc aef,
-	int totalBuckets
+	unsigned int totalBuckets
 ) {
 	_HashTable * new = 
 		_FillHashTable(
 			_SetEmptyHashTable(
 				_MakeEmptyHashTable(), 
-				cf, 
+				cf,
+				df,
 				hf, 
 				aef, 
 				totalBuckets
@@ -294,7 +299,7 @@ List * HashTableToList(HashTable * hashtable) {
 	return _HashTableToList(h);
 }
 
-HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply) {
+HashTable * ApplyToHashTable(HashTable * hashtable, ApplyFunc apply) {
 	if (!hashtable || !apply)
 		return NULL;
 
@@ -304,6 +309,7 @@ HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply) {
 			_SetEmptyHashTable(
 				_MakeEmptyHashTable(), 
 				h->copier, 
+				h->destroyer,
 				h->hasher, 
 				h->judger, 
 				h->totalBuckets
@@ -311,7 +317,7 @@ HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply) {
 		);
  
 	List * snapshot = _HashTableToList(h);
-	ListApply(snapshot, (ListApplyFunc)apply);
+	ListApply(snapshot, apply);
 	ListIterator * iterator = MakeListIterator(snapshot);
 	void * probe = GetCurrentFromIterator(iterator);
 	while (probe) {
@@ -334,6 +340,7 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 		_SetEmptyHashTable(
 			_MakeEmptyHashTable(), 
 			h->copier, 
+			h->destroyer,
 			h->hasher, 
 			h->judger, 
 			h->totalBuckets
@@ -343,7 +350,7 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 	copy->buckets = (_Bucket **)calloc(copy->totalBuckets,sizeof(_Bucket *));
 	assert(copy->buckets);
 	for (int i = 0; i < h->totalBuckets; i++) {
-		copy->buckets[i] = _CopyBucket(h->buckets[i], h->copier);
+		copy->buckets[i] = _CopyBucket(h->buckets[i], h->copier, h->destroyer);
 	}
 	copy->size = h->size;
 
