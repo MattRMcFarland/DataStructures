@@ -6,9 +6,9 @@
 #include "Dictionary.h"
 
 Dictionary * NewDictionary(
-	ValueCopyFunc vcf, 
-	ValueDestroyFunc vdf,
-	ValuesAreEqualFunc vaef,
+	CopyFunc valueCopier, 
+	DestroyerFunc valueDestroyer,
+	AreEqualFunc valueComparator,
 	unsigned int slots) 
 {
 	if (!vcf || !vdf || !vaef)
@@ -49,7 +49,7 @@ void * RemoveDefinition(Dictionary * dictionary, char * word) {
 	return ExtractFromHashMap((HashMap *)dictionary, word);
 }
 
-void PrintDictionary(Dictionary * dictionary, Printer valuePrinter) {
+void PrintDictionary(Dictionary * dictionary, ApplyFunc valuePrinter) {
 	PrintHashMap((HashMap *)dictionary, &printStr, valuePrinter);
 }
 

@@ -1,7 +1,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-typedef void * (*CopyInFunc)(void * element);
+#include "../AbstractHelpers/AbstractFuncs.h"
 
 typedef struct Queue Queue;
 

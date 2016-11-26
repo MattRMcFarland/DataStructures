@@ -1,7 +1,7 @@
 #ifndef STRINGMAP_H
 #define STRINGMAP_H
 
-#include "../HashMap/HashMap.h"
+#include "../AbstractHelpers/AbstractFuncs.h"
 
 typedef struct Dictionary Dictionary;
 
@@ -11,9 +11,9 @@ typedef struct Dictionary Dictionary;
  * ... aka a dictionary!
  */
 Dictionary * NewDictionary(
-	ValueCopyFunc vcf, 
-	ValueDestroyFunc vdf,
-	ValuesAreEqualFunc vaef,
+	CopyFunc vcf, 
+	DestroyerFunc vdf,
+	AreEqualFunc vaef,
 	unsigned int slots);
 
 /*
@@ -71,6 +71,6 @@ void * RemoveDefinition(Dictionary * dictionary, char * word);
  * prints dictionary nicely provided a way to print the definition values
  * Note: see "../HashMap/HashMap.h" for a definition of a Printer function
  */
-void PrintDictionary(Dictionary * dictionary, Printer valuePrinter);
+void PrintDictionary(Dictionary * dictionary, ApplyFunc valuePrinter);
 
 #endif // STRINGMAP_H

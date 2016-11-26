@@ -1,27 +1,10 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 
+#include "../AbstractHelpers/AbstractFuncs.h"
 #include "../List/List.h"
 
 typedef struct HashMap HashMap;
-
-// functions that return a copy of the key / value
-typedef void * (*KeyCopyFunc)(void * key);
-typedef void * (*ValueCopyFunc)(void * value);
-
-// functions that will deallocate memory for key / value
-typedef void (*KeyDestroyFunc)(void * key);
-typedef void (*ValueDestroyFunc)(void * value);
-
-// comparision functions between keys and values
-typedef int (*KeysAreEqualFunc)(void * key1, void * key2);
-typedef int (*ValuesAreEqualFunc)(void * value1, void * value2);
-
-typedef unsigned (*HashFunc)(void * element);
-typedef void (*HashMapApplyFunc)(void * key, void * value);
-
-// pass a function that prints element appropriately
-typedef void (*Printer)(void * element);
 
 /*
  * -- NewHashMap --
@@ -29,13 +12,13 @@ typedef void (*Printer)(void * element);
  * of data that you'd like to handle. 
  */
 HashMap * NewHashMap(
-	KeyCopyFunc kcf, 
-	ValueCopyFunc vcf,
-	KeyDestroyFunc kdf,
-	ValueDestroyFunc vdf,
+	CopyFunc keyCopier, 
+	CopyFunc valueCopier,
+	DestroyerFunc keyDestroyer,
+	DestroyerFunc valueDestroyer,
 	HashFunc hf, 
-	KeysAreEqualFunc kaef, 
-	ValuesAreEqualFunc vaef,
+	AreEqualFunc keyComparator, 
+	AreEqualFunc valueComparator,
 	unsigned int slots);
 
 /*
@@ -102,7 +85,7 @@ void HashMapApply(HashMap * map, HashMapApplyFunc f);
  * the key and the value, this function will print the map in a 
  * nice JSON'esque way.
  */
-void PrintHashMap(HashMap * map, Printer keyPrinter, Printer valuePrinter);
+void PrintHashMap(HashMap * map, ApplyFunc keyPrinter, ApplyFunc valuePrinter);
 
 /* -- iterate over contents of hashmap -- */
 

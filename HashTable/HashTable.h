@@ -2,13 +2,9 @@
 #define HASHTABLE_H
 
 #include "../List/List.h"
+#include "../AbstractHelpers/AbstractFuncs.h"
 
 typedef struct HashTable HashTable;
-
-typedef void * (*CopyFunc)(void * element);
-typedef unsigned (*HashFunc)(void * element);
-typedef int (*AreEqualFunc)(void * element1, void * element2);
-typedef void (*HashTableApplyFunc)(void * element);
 
 HashTable * NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int hashSlots);
 void DestroyHashTable(HashTable * hashtable);
@@ -32,10 +28,10 @@ int HashTableContains(HashTable * hashtable, void * key);
 List * HashTableToList(HashTable * hashtable);
 
 // returns mutated hashtable, does not claim original
-HashTable * ApplyToHashTable(HashTable * hashtable, HashTableApplyFunc apply);
+HashTable * ApplyToHashTable(HashTable * hashtable, ApplyFunc apply);
 
 HashTable * CopyHashTable(HashTable * hashtable);
-void PrintHashTable(HashTable * hashtable, HashTableApplyFunc printer);
+void PrintHashTable(HashTable * hashtable, ApplyFunc printer);
 
 /* --- iterate over all elements in a snapshot of hashtable --- */
 
