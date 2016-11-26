@@ -14,6 +14,7 @@ typedef struct _List {
 	_Node * head, * tail;
 	int size;
 	void * (*copier)(void *);
+	void (*destroyer)(void *);
 } _List;
 
 /* --- internal node functions --- */
@@ -32,11 +33,11 @@ _Node * _MakeNode(void * data, _Node * prev, _Node * next) {
 	return node;
 }
 
-void _DestroyNode(_Node * node) {
+void _DestroyNode(_Node * node, DestroyerFunc destroyer) {
 	if (!node)
 		return;
-	if (node->data)
-		free(node->data);
+	if (node->data && destroyer != NULL)
+		destroyer(node->data);
 	free(node);
 }
 
@@ -52,7 +53,7 @@ void * _ExtractDataAndDestroy(_Node * node) {
 	if (!node)
 		return NULL;
 	void * data = _ExtractData(node);
-	_DestroyNode(node);
+	_DestroyNode(node, NULL);
 	return data;
 }
 
@@ -104,11 +105,12 @@ _UnsetList * _MakeEmptyList() {
 	return (_UnsetList *)list;
 }
 
-_List * _SetList(_UnsetList * list, CopyInFunc copier) {
-	if (!list)
+_List * _SetList(_UnsetList * list, CopyInFunc copier, DestroyerFunc destroyer) {
+	if (!list || !copier || !destroyer)
 		return NULL;
 	_List * l = (_List *)list;
 	l->copier = copier;
+	l->destroyer = destroyer;
 	return l; 
 }
 
@@ -129,7 +131,10 @@ void _DestroyList(_List * list) {
 	if (!list)
 		return;
 
-	_ListApply(list, _DestroyNode);
+	_Node * node = list->head;
+	while ( (node = list->head) != NULL) {
+		_DestroyNode(_SafeSpliceOutNode(list, node), list->destroyer);
+	}
 	free(list);
 }
 
@@ -251,8 +256,10 @@ _UnsetList * _ArrayIntoList(void * array[], int length) {
 
 /* --- external functions --- */
 
-List * NewList(CopyInFunc copier) {
-	_List * new = _SetList(_MakeEmptyList(), copier);
+List * NewList(CopyInFunc copier, DestroyerFunc destroyer) {
+	if (!copier || !destroyer)
+		return NULL;
+	_List * new = _SetList(_MakeEmptyList(), copier, destroyer);
 	return (List *)new;
 }
 
@@ -300,7 +307,7 @@ int RemoveFromList(List * list, ListSearchFunc searchFunc, void * key) {
 	while (probe) {
 		next = probe->next;
 		if (searchFunc(probe->data, key) == 1) {
-			_DestroyNode(_SafeSpliceOutNode(l, probe));
+			_DestroyNode(_SafeSpliceOutNode(l, probe), l->destroyer);
 			removed++;
 		} 
 		probe = next;
@@ -355,7 +362,6 @@ int ListCount(List * list, ListSearchFunc searchFunc, void * key) {
 	return count;
 }
 
-
 void * TakeHead(List * list) {
 	if (!list)
 		return NULL;
@@ -407,7 +413,7 @@ List * CopyList(List * list) {
 		return NULL;
 
 	_List * l = (_List *)list;
-	_List * copy = _SetList(_MakeEmptyList(), l->copier);
+	_List * copy = _SetList(_MakeEmptyList(), l->copier, l->destroyer);
 
 	_Node * probe = l->head;
 	while (probe) {
@@ -428,7 +434,7 @@ List * SortList(List * list, CompareFunc comparator) {
 	void ** array = _ListToArray(l, &length);
 	_QSortArray(array, length, comparator);
 	_UnsetList * unsetSorted = _ArrayIntoList(array, length);
-	_List * sorted = _SetList(unsetSorted, l->copier);
+	_List * sorted = _SetList(unsetSorted, l->copier, l->destroyer);
 	_DestroyList(l);
 
 	return (List *)sorted;
@@ -439,7 +445,7 @@ List * ReverseList(List * list) {
 		return NULL;
 
 	_List * l = (_List *)list;
-	_List * reversed = _SetList(_MakeEmptyList(), l->copier);
+	_List * reversed = _SetList(_MakeEmptyList(), l->copier, l->destroyer);
 	_Node * head = l->head;
 	while (head) {
 		_PutListHead(reversed, head->data);
@@ -454,8 +460,9 @@ void ClearList(List * list) {
 		return;
 
 	_List * l = (_List *)list;
-	
-	_ListApply(l, _DestroyNode);
+	while ( (l->head) != NULL)  {
+		_DestroyNode(_SafeSpliceOutNode(l, l->head), l->destroyer);
+	}
 	l->head = l->tail = NULL;
 	l->size = 0;
 	return;

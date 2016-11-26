@@ -7,6 +7,7 @@ This is a linked-list structure that holds abstracted memory references. You can
 ## How Do I Use It?
 `./ListTest` has some pretty exhaustive example on how to use the list and all the things you can do with it.
 
+### Copying -- An example copy function
 ```
 void * copyFunc(void * data) {
 	if (!data)
@@ -20,13 +21,24 @@ void * copyFunc(void * data) {
 }
 ```
 
+### Destroying -- An example destroy function
+```
+void destroyFunc(void * data) {
+	if (!data)
+		return;
+	// -- destroy data internals --
+	free(data);
+}
+```
+
+### Comparison -- An example comparison function
 ```
 int myCompareFunc(void * myStruct1, void * myStruct2) {
 	// returns 1 if these two data structures are equal, else returns 0
 }
 ```
 
-* Creation: `List * newList = NewList(&copyFunc);`
+* Creation: `List * newList = NewList(&copyFunc, &destroyFunc);`
 * Appending: `AppendToList(newList, (void *)&myData);`
 * Searching: `ListContains(newList, &myCompareFunc, (void *)&myData);`
 * Destruction: `DestroyList(newList);`

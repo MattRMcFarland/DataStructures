@@ -2,6 +2,7 @@
 #define LIST_H
 
 typedef void * (*CopyInFunc)(void * element);
+typedef void (*DestroyerFunc)(void * element);
 typedef int (*ListSearchFunc)(void * element, void * key); // returns 1 on match
 typedef void (*ListApplyFunc)(void * element);
 
@@ -11,8 +12,7 @@ typedef int (*CompareFunc)(const void * element1, const void * element2);
 
 typedef struct List List;
 
-// TODO: we also need a custom destroyer to be fully abstract
-List * NewList(CopyInFunc copier);
+List * NewList(CopyInFunc copier, DestroyerFunc destroyer);
 void DestroyList(List * list);
 
 // returns -1 on error

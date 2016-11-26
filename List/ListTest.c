@@ -13,7 +13,7 @@ List * MakeIntListFromArr(int arr[], int size) {
 	if (!arr || size < 0)
 		return NULL;
 
-	List * new = NewList(&myIntDup);
+	List * new = NewList(&myIntDup, &safeFree);
 	for (int i = 0; i < size; i++) {
 		AppendToList(new,(void *)&arr[i]);
 	}
@@ -37,7 +37,7 @@ int main() {
 	 * size, put, append, contains, remove, copy tests
 	 */
 
-	List * list = NewList(&myStrdup);
+	List * list = NewList(&myStrdup, &safeFree);
 	List * emptyCopy = CopyList(list);
 
 	shouldBe_Int(ListSize(list), 0);
@@ -112,7 +112,7 @@ int main() {
 	int arr[] = {1, 3, 5, 7, 9, 11};
 	int HTsize = sizeof(arr) / sizeof(int);
 
-	List * HTlist = NewList(&myIntDup);
+	List * HTlist = NewList(&myIntDup, &safeFree);
 	for (int i = 0; i < HTsize; i++) {
 		shouldBe_Int(*(int *)AppendToList(HTlist, &arr[i]), arr[i]);
 	}
@@ -168,8 +168,8 @@ int main() {
 	DestroyList(wholeList);
 
 	/* -- empty to empty -- */
-	List * empty1 = NewList(&myIntDup);
-	List * empty2 = NewList(&myIntDup);
+	List * empty1 = NewList(&myIntDup, &safeFree);
+	List * empty2 = NewList(&myIntDup, &safeFree);
 	empty1 = CatLists(empty1, empty2);
 	assert(empty1);
 	shouldBe_Int(ListSize(empty1), 0);
@@ -180,7 +180,7 @@ int main() {
 	int dummy = 9999;
 
 	List * filled1 = MakeIntListFromArr(filled, sizeof(filled) / sizeof(int));
-	List * empty3 = NewList(&myIntDup);
+	List * empty3 = NewList(&myIntDup, &safeFree);
 	filled1 = CatLists(filled1, empty3);
 	assert(filled1);
 	shouldBe_Int(ListSize(filled1), 6);
@@ -193,7 +193,7 @@ int main() {
 	DestroyList(filled1);
 
 	/* -- empty <- filled -- */
-	List * empty4 = NewList(&myIntDup);
+	List * empty4 = NewList(&myIntDup, &safeFree);
 	List * filled2 = MakeIntListFromArr(filled, sizeof(filled) / sizeof(int));
 	filled2 = CatLists(empty4, filled2);
 	assert(filled2);
