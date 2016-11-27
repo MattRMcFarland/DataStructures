@@ -122,7 +122,7 @@ static _UnfilledHashTable * _SetEmptyHashTable(
 	_HashTable * hashtable = (_HashTable *)unset;
 	hashtable->copier = copier;
 	hashtable->destroyer = destroyer;
-	hashtable->hasher = (hasher != NULL) ? hasher : &DefaultHashFunction;
+	hashtable->hasher = (hasher) ? hasher : &DefaultHashFunction;
 	hashtable->hasher = hasher;
 	hashtable->judger = judger;
 	hashtable->totalBuckets = totalBuckets;
