@@ -123,7 +123,6 @@ static _UnfilledHashTable * _SetEmptyHashTable(
 	hashtable->copier = copier;
 	hashtable->destroyer = destroyer;
 	hashtable->hasher = (hasher) ? hasher : &DefaultHashFunction;
-	hashtable->hasher = hasher;
 	hashtable->judger = judger;
 	hashtable->totalBuckets = totalBuckets;
 	return (_UnfilledHashTable *)hashtable;

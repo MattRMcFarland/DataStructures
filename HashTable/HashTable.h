@@ -9,7 +9,7 @@ typedef struct HashTable HashTable;
 HashTable * NewHashTable(
 	CopyFunc cf, 
 	DestroyFunc df, 
-	HashFunc hf, 
+	HashFunc hf, 	// use NULL for default hash function 
 	AreEqualFunc aef, 
 	unsigned int hashSlots);
 void DestroyHashTable(HashTable * hashtable);

@@ -72,8 +72,10 @@ void PrintSet(Set * s, ApplyFunc printer) {
 	printf("Set {");
 	while (cur) {
 		printer(cur);
-		printf(", ");
 		cur = AdvanceAndGetFromHashTableIterator(i);
+		if (cur) {
+			printf(", ");
+		}
 	}
 	printf("}\n");
 	DestroyHashTableIterator(i);
