@@ -38,8 +38,21 @@ int SetContains(Set * set, void * element);
 void * RemoveFromSet(Set * set, void * element);
 
 /*
+ * -- SetToList --
+ * copies the Set and turns it into a List
+ * caller claims newly returned List structure
+ *
+ * returns List on success, NULL on failure
+ */
+List * SetToList(Set * set);
+
+/*
  * -- MergeSets --
  * collect all unique entries between two sets
+ * creates a new set (does not claim either argument)
+ *
+ * Note: caller should make sure that the sets are 
+ * 	structurally compatible. 
  * 
  * Usage: Set * newSet = MergeSets(set1, set2);
  */

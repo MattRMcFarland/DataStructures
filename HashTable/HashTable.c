@@ -239,6 +239,21 @@ void DestroyHashTable(HashTable * HashTable) {
 	free(h);
 }
 
+int CompareHashTableStructure(HashTable * h1, HashTable * h2) {
+	if (!h1 || !h2)
+		return 0;
+
+	_HashTable table1 = (_HashTable *)h1;
+	_HashTable table2 = (_HashTable *)h2;
+
+	return 
+		(table1->copier != table2->copier) ? 0 :
+		(table1->destroyer != table2->destroyer) ? 0 :
+		(table1->hasher != table2->hasher) ? 0 :
+		(table1->judger != table2->judger) ? 0 :
+		1;
+}
+
 int HashTableSize(HashTable * HashTable) {
 	if (!HashTable)
 		return -1;
@@ -354,6 +369,11 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 
 	return (HashTable *)copy;
 }
+
+HashTable * CopyHashTableStructure(HashTable * skeleton) {
+	;lasjdfl;kjs
+}
+
 
 void PrintHashTable(HashTable * HashTable, ApplyFunc printer) {
 	if (!HashTable || !printer)

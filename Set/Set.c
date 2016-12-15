@@ -61,6 +61,20 @@ List * SetToList(Set * s) {
 	return HashTableToList(set);
 }
 
+Set * MergeSets(Set * s1, Set * s2) {
+	if (!set1 || !set2)
+		return NULL;
+
+	Hashtable * set1 = (Hashtable *)s1;
+	Hashtable * set2 = (HashTable *)s2;
+
+	if (CompareHashTableStructure(set1, set2) != 1)
+		return NULL;
+
+	
+
+}
+
 void PrintSet(Set * s, ApplyFunc printer) {
 	if (!s || !printer)
 		return;

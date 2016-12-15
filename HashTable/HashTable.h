@@ -14,6 +14,10 @@ HashTable * NewHashTable(
 	unsigned int hashSlots);
 void DestroyHashTable(HashTable * hashtable);
 
+// returns 1 if both hashtables have same copier, destroyer, hasher, comparer
+// returns 0 otherwise
+int CompareHashTableStructure(HashTable * hashtable1, HashTable * hashtable2);
+
 int HashTableSize(HashTable * hashtable);
 
 // paranoidly returns reference to copied element -- do not claim!
@@ -36,6 +40,16 @@ List * HashTableToList(HashTable * hashtable);
 HashTable * ApplyToHashTable(HashTable * hashtable, ApplyFunc apply);
 
 HashTable * CopyHashTable(HashTable * hashtable);
+
+/*
+ * -- CopyHashTableStructure --
+ * creates a copy of the HashTable (copier, destroyer, comparer, hasher)
+ * in an empty hashtable.
+ *
+ * Note: caller is responsible for returned HashTable memory
+ */
+HashTable * CopyHashTableStructure(HashTable * skeleton);
+
 void PrintHashTable(HashTable * hashtable, ApplyFunc printer);
 
 /* --- iterate over all elements in a snapshot of hashtable --- */
