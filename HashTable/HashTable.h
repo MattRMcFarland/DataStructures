@@ -47,6 +47,7 @@ HashTable * CopyHashTable(HashTable * hashtable);
  * in an empty hashtable.
  *
  * Note: caller is responsible for returned HashTable memory
+ * Usage: HashTable * emptyCopy = CopyHashTableStructure(originalHashTable);
  */
 HashTable * CopyHashTableStructure(HashTable * skeleton);
 

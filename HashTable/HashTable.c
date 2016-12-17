@@ -349,6 +349,7 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 		return NULL;
 	_HashTable * h = (_HashTable *)hashtable;
 
+	// create the copy structure
 	_UnfilledHashTable * unfilledCopy = 
 		_SetEmptyHashTable(
 			_MakeEmptyHashTable(), 
@@ -359,6 +360,7 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 			h->totalBuckets
 		);
 
+	// copy all of the buckets
 	_HashTable * copy = (_HashTable *)unfilledCopy;
 	copy->buckets = (_Bucket **)calloc(copy->totalBuckets,sizeof(_Bucket *));
 	assert(copy->buckets);
@@ -370,10 +372,34 @@ HashTable * CopyHashTable(HashTable * hashtable) {
 	return (HashTable *)copy;
 }
 
-HashTable * CopyHashTableStructure(HashTable * skeleton) {
-	;lasjdfl;kjs
-}
+HashTable * CopyHashTableStructure(HashTable * hashtable) {
+	if (!hashtable)
+		return NULL;
 
+	// create HashTable structure
+	_HashTable * h = (_HashTable *)hashtable;
+	_UnfilledHashTable * unfilledCopy = 
+		_SetEmptyHashTable(
+			_MakeEmptyHashTable(), 
+			h->copier, 
+			h->destroyer,
+			h->hasher, 
+			h->judger, 
+			h->totalBuckets
+		);
+
+	// fill the bucket pointers!
+	_HashTable * copy = (_HashTable *)unfilledCopy;
+	copy->buckets = (_Bucket **)calloc(copy->totalBuckets,sizeof(_Bucket *));
+	assert(copy->buckets);
+
+	// create the empty buckets
+	for (int i = 0; i < copy->totalBuckets; i++) {
+		copy->buckets[i] = _MakeEmptyBucket(copy->copier, copy->destroyer);
+	}
+
+	return (HashTable *)copy;
+}
 
 void PrintHashTable(HashTable * HashTable, ApplyFunc printer) {
 	if (!HashTable || !printer)
@@ -387,7 +413,6 @@ void PrintHashTable(HashTable * HashTable, ApplyFunc printer) {
 		}
 	}
 	printf("\n");
-
 }
 
 /* --- external iterator stuff --- */

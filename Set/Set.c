@@ -71,8 +71,32 @@ Set * MergeSets(Set * s1, Set * s2) {
 	if (CompareHashTableStructure(set1, set2) != 1)
 		return NULL;
 
-	
+	HashTable * intersection = CopyHashTableStructure(set1);
+	if (!intersection)
+		return NULL;
 
+	// iterate over the smaller table
+	Hashtable * iteratedTable = NULL;
+	Hashtable * compareTable = NULL;
+	if (set1 < set2) {
+		iteratedTable = set1;
+		compareTable = set2;
+	} else {
+		iteratedTable = set2;
+		compareTable = set1;
+	}
+
+	HashTableIterator * i = NewHashTableIterator(iteratedTable);
+	void * cur = GetHashTableIteratorCurrent(i);
+	while (cur != NULL)	{
+		if (HashTableContains(compareTable, cur) && !HashTableContains(intersection, cur)) {
+			AddToHashTable(intersection, cur);
+		}
+		cur = AdvanceAndGetFromHashTableIterator(i);
+	}
+	DestroyHashTableIterator(i);
+
+	return (Set *)intersection;
 }
 
 void PrintSet(Set * s, ApplyFunc printer) {
