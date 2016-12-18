@@ -31,7 +31,7 @@ Oh, you didn't want to use the List to keep track of custom structs and just wan
 I defined a bunch of testing functions that will cause your test program to `assert(0)` and break hard if an expected value isn't what's observed. These functions help build robust test suites that will help you unit test. I used them for all of these structure tests. Testing assertions include...
 * `shouldBe_Str(testingStr, expectedStr);`
 * `shouldBe_Int(testingInt, expectedInt);`
-* `shouldBe_IntPtr(testingPtr, expectedPtr);`
+* `shouldBe_IntPtr(testingPtr, expectedInt);`
 * `shouldBe_NULL(testingVal);`
 * `shouldBe_NonNULL(testingVal);`
 
