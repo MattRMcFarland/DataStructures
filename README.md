@@ -29,11 +29,11 @@ Oh, you didn't want to use the List to keep track of custom structs and just wan
 
 ## TestingHelper
 I defined a bunch of testing functions that will cause your test program to `assert(0)` and break hard if an expected value isn't what's observed. These functions help build robust test suites that will help you unit test. I used them for all of these structure tests. Testing assertions include...
-* shouldBe_Str(testingStr, expectedStr);
-* shouldBe_Int(testingInt, expectedInt);
-* shouldBe_IntPtr(testingPtr, expectedPtr);
-* shouldBe_NULL(testingVal);
-* shouldBe_NonNULL(testingVal);
+* `shouldBe_Str(testingStr, expectedStr);`
+* `shouldBe_Int(testingInt, expectedInt);`
+* `shouldBe_IntPtr(testingPtr, expectedPtr);`
+* `shouldBe_NULL(testingVal);`
+* `shouldBe_NonNULL(testingVal);`
 
 ### Custom Tester
 I've included a way to make a custom test (execute a custom comparison function) and assert that two values are equal. I haven't actually used it though.
