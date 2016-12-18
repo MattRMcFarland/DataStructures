@@ -44,7 +44,7 @@ int AddToSet(Set * s, void * element) {
 int SetContains(Set * s, void * element) {
 	if (!s || !element)
 		return 0;
-	
+
 	HashTable * set = (HashTable *)s;
 	return HashTableContains(set, element);
 }
@@ -147,12 +147,9 @@ Set * FindUnion(Set * s1, Set * s2) {
 void PrintSet(Set * s, ApplyFunc printer) {
 	if (!s || !printer)
 		return;
+
 	HashTable * set = (HashTable *)s;
-
 	HashTableIterator * i = NewHashTableIterator(set);
-
-	PrintHashTable(set, printer);
-
 	void * cur = GetHashTableIteratorCurrent(i);
 
 	printf("Set: {");

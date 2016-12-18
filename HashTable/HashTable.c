@@ -21,8 +21,9 @@ typedef struct _HashTable {
 	
 } _HashTable;
 
+// hash of off the first N bytes (N = sizeof(int))
 unsigned DefaultHashFunction(void * element) {
-	return (unsigned)(long)element;
+	return (unsigned)*(int *)element;
 }
 
 static _Bucket * _HashToBucket(_HashTable * hashtable, void * element) {

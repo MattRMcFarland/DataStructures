@@ -28,7 +28,7 @@ int AddToSet(Set * set, void * element);
  * returns 1 if value is present
  * returns 0 if value is not present or error occurred
  */
-int SetContains(Set * set, void * element);
+int SetContains(Set * set, void * key);
 
 /*
  * -- RemoveFromSet --
@@ -36,7 +36,7 @@ int SetContains(Set * set, void * element);
  *
  * Note: caller must claim returned memory
  */
-void * RemoveFromSet(Set * set, void * element);
+void * RemoveFromSet(Set * set, void * key);
 
 /*
  * -- SetToList --

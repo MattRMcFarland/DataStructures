@@ -29,8 +29,9 @@ typedef struct _HashMap {
 
 } _HashMap;
 
+// hash of off the first N bytes (N = sizeof(int))
 unsigned DefaultHashFunction(void * element) {
-	return (unsigned)(long)element;
+	return (unsigned)*(int *)element;
 }
 
 _Bucket * _HashToBucket(_HashMap * map, void * key) {

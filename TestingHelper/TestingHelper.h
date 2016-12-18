@@ -6,6 +6,10 @@ void shouldBe_IntPtr(int * testingVal, int targetVal);
 
 void shouldBe_Str(char * testingStr, char * targetStr);
 
+void shouldBe_NULL(void * testingVal);
+
+void shouldBe_NonNULL(void * testingVal);
+
 typedef struct CustomTester CustomTester;
 
 CustomTester * MakeCustomTester(int (* IsEqualFunc)(void *, void *));

@@ -26,6 +26,16 @@ void shouldBe_Str(char * testingStr, char * targetStr) {
 	assert(strcmp(testingStr, targetStr) == 0);
 }
 
+void shouldBe_NULL(void * testingVal) {
+	if (testingVal != NULL)
+		assert(0);
+}
+
+void shouldBe_NonNULL(void * testingVal) {
+	assert(testingVal);
+}
+
+
 typedef struct _CustomTester {
 	int (* IsEqualFunc)(void *, void *);
 } _CustomTester;

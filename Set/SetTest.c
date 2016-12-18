@@ -2,9 +2,25 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "../AbstractHelpers/StringHelper.h"
+#include "../AbstractHelpers/IntHelper.h"
 #include "../TestingHelper/TestingHelper.h"
 #include "Set.h"
 #include "../List/List.h"
+
+int CompareSets(Set * set1, Set * set2) {
+	if (!set1 || !set2)
+		return 0;
+
+	int size1 = SetSize(set1);
+	if (size1 != SetSize(set2))
+		return 0;
+
+	Set * intersection = FindIntersection(set1, set2);
+	int isSame = (SetSize(intersection) == size1) ? 1 : 0;
+	DestroySet(intersection);
+
+	return isSame;
+}
 
 int main() {
 	printf("\nRunning Set Tests...\n");
@@ -47,9 +63,6 @@ int main() {
 	ListIterator * li = MakeListIterator(list);
 	void * curListEntry = GetCurrentFromIterator(li);
 	while (curListEntry) {
-		printf("Listed entry: %s\n", curListEntry);
-		printf("Size of curListEntry %d, size of void * %d, sizeof char * %d\n", sizeof(curListEntry), sizeof(void *), sizeof(char *));
-		printf("Set contains return value for current: %d\n", SetContains(set, curListEntry));
 		shouldBe_Int(SetContains(set, curListEntry), 1);
 		curListEntry = AdvanceAndGetFromIterator(li);
 	}
@@ -60,11 +73,112 @@ int main() {
 	DestroyList(list);
 
 	/*
-	 * TODO: Test Union and Intersection functions
+	 * Test Union and Intersection functions
 	 */
 
-	fprintf(stderr, "TODO: IMPLEMENT UNION UNIT TESTS!!!\n");
-	fprintf(stderr, "TODO: IMPLEMENT INTERSECTION UNIT TESTS!!!\n");
+	// try edge cases
+	shouldBe_NULL(FindIntersection(NULL, NULL));
+	shouldBe_NULL(FindIntersection(NULL, set));
+	shouldBe_NULL(FindIntersection(set, NULL));
+
+	shouldBe_NULL(FindUnion(NULL, NULL));
+	shouldBe_NULL(FindUnion(NULL, set));
+	shouldBe_NULL(FindUnion(set, NULL));
+
+	// try with mismatched structures  
+	// -- don't actually need b/c if set structures are different, program halts
+	// 
+	// Set * intSet1 = NewSet(&myIntDup, &safeFree, &strIsEqual);
+	// Set * intSet2 = NewSet(&myStrdup, &free, &strIsEqual);
+	// Set * intSet3 = NewSet(&myStrdup, &safeFree, &myIntCompare);
+
+	// shouldBe_NULL(FindIntersection(intSet1, set));
+	// shouldBe_NULL(FindIntersection(intSet2, set));
+	// shouldBe_NULL(FindIntersection(intSet3, set));
+
+	// shouldBe_NULL(FindUnion(intSet1, set));
+	// shouldBe_NULL(FindUnion(intSet2, set));
+	// shouldBe_NULL(FindUnion(intSet3, set));
+
+	// DestroySet(intSet1);
+	// DestroySet(intSet2);
+	// DestroySet(intSet3);
+
+	// try with empty Set
+	Set * emptySet = NewSet(&myStrdup, &safeFree, &strIsEqual);
+
+	Set * intersection1 = FindIntersection(emptySet, set);
+	shouldBe_NonNULL(intersection1);
+	shouldBe_Int(SetSize(intersection1), 0);
+
+	Set * union1 = FindUnion(emptySet, set);
+	shouldBe_NonNULL(union1);
+	shouldBe_Int(SetSize(union1), SetSize(set));
+
+	DestroySet(intersection1);
+	DestroySet(union1);
+
+	// try with partial sets now
+	Set * partialUsers = NewSet(&myStrdup, &safeFree, &strIsEqual);
+	int partialN = 3;
+	for (int i = 0; i < partialN; i++) {
+		AddToSet(partialUsers, users[i]);
+	}
+
+	Set * intersection = FindIntersection(partialUsers, set);
+	shouldBe_NonNULL(intersection);
+	shouldBe_Int(SetSize(intersection), partialN);
+
+	for (int i = 0; i < n; i++) {
+		if (i < partialN) {
+			shouldBe_Int(SetContains(partialUsers, users[i]), 1);
+		} else {
+			shouldBe_Int(SetContains(partialUsers, users[i]), 0);
+		}
+	}
+
+	DestroySet(intersection);
+	DestroySet(partialUsers);
+
+	// add the Avengers!
+	char * avengerNames[] = {"Ironman", "Hulk", "Black Widow", "Thor", "Captain America"};
+	int avengersN = sizeof(avengerNames) / sizeof(char *);
+
+	Set * avengers = NewSet(&myStrdup, &safeFree, &strIsEqual);
+	for (int i = 0; i < avengersN; i++) {
+		AddToSet(avengers, avengerNames[i]);
+	}
+
+	Set * avengersIntersection = FindIntersection(avengers, set);
+	shouldBe_NonNULL(avengersIntersection);
+	shouldBe_Int(SetSize(avengersIntersection), 0);
+	DestroySet(avengersIntersection);
+
+	Set * bigUnion = FindUnion(avengers, set);
+	shouldBe_NonNULL(bigUnion);
+	shouldBe_Int(SetSize(bigUnion), SetSize(avengers) + SetSize(set));
+
+	PrintSet(bigUnion, &printStr);
+
+	List * bigUnionList = SetToList(bigUnion);
+	shouldBe_NonNULL(bigUnionList);
+	ListIterator * bigULI = MakeListIterator(bigUnionList);
+	char * currentUserAvenger = GetCurrentFromIterator(bigULI);
+	while (currentUserAvenger) {
+		shouldBe_Int(SetContains(avengers, currentUserAvenger) || SetContains(set, currentUserAvenger), 1);
+		currentUserAvenger = AdvanceAndGetFromIterator(bigULI);
+	}
+	DestroyListIterator(bigULI);
+
+	Set * avengers2 = FindIntersection(avengers, bigUnion);
+	shouldBe_Int(CompareSets(avengers2, avengers), 1);
+	DestroySet(avengers2);
+
+	Set * set2 = FindIntersection(set, bigUnion);
+	shouldBe_Int(CompareSets(set2, set), 1);
+	DestroySet(set2);
+
+	DestroySet(bigUnion);
 
 	/*
 	 * Test Removal
