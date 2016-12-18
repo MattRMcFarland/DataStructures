@@ -273,7 +273,7 @@ void DestroyList(List * list) {
 
 int ListSize(List * list) {
 	if (!list)
-		return -1;
+		return 0;
 
 	_List * l = (_List *)list;
 	return l->size;
@@ -297,7 +297,7 @@ void * PutListHead(List * list, void * element) {
 
 int RemoveFromList(List * list, AreEqualFunc searchFunc, void * key) {
 	if (!list || !searchFunc)
-		return -1;
+		return 0;
 
 	_List * l = (_List *)list;
 	_Node * probe = l->head;
@@ -316,7 +316,7 @@ int RemoveFromList(List * list, AreEqualFunc searchFunc, void * key) {
 }
 
 void * ExtractFromList(List * list, AreEqualFunc searchFunc, void * key) {
-	if (!list || !searchFunc)
+	if (!list || !searchFunc || !key)
 		return NULL;
 
 	_List * l = (_List *)list;
@@ -332,8 +332,8 @@ void * ExtractFromList(List * list, AreEqualFunc searchFunc, void * key) {
 }
 
 int ListContains(List * list, AreEqualFunc searchFunc, void * key) {
-	if (!list || !searchFunc)
-		return -1;
+	if (!list || !searchFunc || !key)
+		return 0;
 
 	_List * l = (_List *)list;
 	_Node * probe = l->head;
@@ -347,8 +347,8 @@ int ListContains(List * list, AreEqualFunc searchFunc, void * key) {
 }
 
 int ListCount(List * list, AreEqualFunc searchFunc, void * key) {
-	if (!list || !searchFunc)
-		return -1;
+	if (!list || !searchFunc || !key)
+		return 0;
 
 	_List * l = (_List *)list;
 	_Node * probe = l->head;

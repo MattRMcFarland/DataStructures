@@ -105,6 +105,19 @@ int main() {
 	ClearList(list);
 	shouldBe_Int(ListSize(list), 0);
 
+	// testing edge cases
+	shouldBe_Str(ExtractFromList(list, &strIsEqual, NULL), (char *)NULL);
+	shouldBe_Str(ExtractFromList(list, NULL, "edge case"), (char *)NULL);
+
+	shouldBe_Int(RemoveFromList(list, &strIsEqual, NULL), 0);
+	shouldBe_Int(RemoveFromList(list, NULL, "edge case"), 0);
+
+	shouldBe_Int(ListContains(list, &strIsEqual, NULL), 0);
+	shouldBe_Int(ListContains(list, NULL, "edge case"), 0);
+
+	shouldBe_Int(ListCount(list, &strIsEqual, NULL), 0);
+	shouldBe_Int(ListCount(list, NULL, "edge case"), 0);
+
 	/*
 	 * testing head and tail functions
 	 */

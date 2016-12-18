@@ -25,7 +25,7 @@ int myIntIsEqual(void * testInteger, void * targetInteger) {
 }
 
 // NULL is considered LEAST value possible
-int myIntCompare(const void * a1, const void * a2) {
+int myIntCompare(void * a1, void * a2) {
 	int * arg1 = *(int **)a1;
 	int * arg2 = *(int **)a2;
 

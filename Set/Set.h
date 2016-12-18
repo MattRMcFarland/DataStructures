@@ -2,6 +2,7 @@
 #define SET_H
 
 #include "../AbstractHelpers/AbstractFuncs.h"
+#include "../List/List.h"
 
 typedef struct Set Set;
 
@@ -47,16 +48,28 @@ void * RemoveFromSet(Set * set, void * element);
 List * SetToList(Set * set);
 
 /*
- * -- MergeSets --
- * collect all unique entries between two sets
+ * -- FindIntersection --
+ * collect all unique entries included in two sets and
  * creates a new set (does not claim either argument)
  *
- * Note: caller should make sure that the sets are 
- * 	structurally compatible. 
- * 
- * Usage: Set * newSet = MergeSets(set1, set2);
+ * Note: both sets must be structurally compatible,
+ * 	(same copier, destroyer, and comparator functions)
+ *
+ * Note: caller claims returned set
  */
-Set * MergeSets(Set * set1, Set * set2);
+Set * FindIntersection(Set * set1, Set * set2);
+
+/*
+ * -- FindUnion --
+ * creates a new set representing all unique entries 
+ * represented in argument sets
+ *
+ * Note: both sets must be structurally compatible,
+ * 	 (same copier, destroyer, and comparator functions)
+ * 
+ * Note: caller claims returned set
+ */
+Set * FindUnion(Set * set1, Set * set2);
 
 void PrintSet(Set * s, ApplyFunc printer);
 

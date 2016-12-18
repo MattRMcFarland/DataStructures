@@ -1,2 +1,3 @@
 # debugging files
 *.dSYM
+*.o

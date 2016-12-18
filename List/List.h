@@ -17,17 +17,41 @@ void * AppendToList(List * list, void * element);
 
 void * PutListHead(List * list, void * element);
 
-// removes data from list and returns reference, caller claims returned memory!
+/*
+ * -- ExtractFromList --
+ * removes data from list and returns reference to extracted element
+ * returns NULL if not present or error occurs
+ * 
+ * Note: caller claims returned memory!
+ * Note: key must be non-null
+ */
 void * ExtractFromList(List * list, AreEqualFunc f, void * key);
 
-// will remove *all* instances that match the given `key`
-// returns number of removed elements, -1 on error
+/*
+ * -- RemoveFromList --
+ * will remove all instances that match the given `key`
+ * and returns number of removed elements (and 0 on error)
+ *
+ * Note: key must be non-null
+ */
 int RemoveFromList(List * list, AreEqualFunc f, void * key);
 
-// returns 1 if list contains an element that matches `key`, 0 if absent, -1 on error
-int ListContains(List * list, AreEqualFunc f , void * key);
+/*
+ * -- ListContains --
+ * returns 1 if element is present
+ * returns 0 if not or error occurs
+ *
+ * Note: key must be non-null
+ */
+int ListContains(List * list, AreEqualFunc f, void * key);
 
-// returns count of elements matching `key`, -1 on error
+/*
+ * -- ListCount --
+ * returns number of instances of element in List
+ * returns 0 if not present or error
+ *
+ * Note: key must be non-null
+ */
 int ListCount(List * list, AreEqualFunc f, void * key);
 
 // returns data element -- caller is responsible for returned memory reference
@@ -38,9 +62,14 @@ void * TakeTail(List * list);
 void * PeekHead(List * list);
 void * PeekTail(List * list);
 
-// claims list2!
-// example usage:
-//	List * catedList = CatList(list1, list2);
+/* 
+ * -- CatLists --
+ * copies both argument lists and appends list2 to list1
+ *
+ * Note: caller must claim returned list reference!
+ * 
+ * Usage: List * catedList = CatList(list1, list2);
+ */
 List * CatLists(List * list1, List * list2);
 
 // returns 1 if element 1 is less than element 2

@@ -20,7 +20,12 @@ int CompareHashTableStructure(HashTable * hashtable1, HashTable * hashtable2);
 
 int HashTableSize(HashTable * hashtable);
 
-// paranoidly returns reference to copied element -- do not claim!
+/*
+ * -- AddToHashTable --
+ * adds element to HashTable and returns it (do not claim!)
+ * 
+ * Note: cannot add NULL elements
+ */
 void * AddToHashTable(HashTable * hashtable, void * element);
 
 void * ExtractFromHashTable(HashTable * hashtable, void * key);
@@ -30,7 +35,11 @@ int RemoveFromHashTable(HashTable * hashtable, void * key);
 
 void ClearHashTable(HashTable * hashtable);
 
-// returns 1 if present, 0 if not, -1 on error
+/*
+ * -- HashTableContains --
+ * returns 1 if element is in table
+ * else returns 0 (also 0 if hashtable or key is NULL)
+ */
 int HashTableContains(HashTable * hashtable, void * key);
 
 // returns list of all HashTable contents

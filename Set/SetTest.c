@@ -4,6 +4,7 @@
 #include "../AbstractHelpers/StringHelper.h"
 #include "../TestingHelper/TestingHelper.h"
 #include "Set.h"
+#include "../List/List.h"
 
 int main() {
 	printf("\nRunning Set Tests...\n");
@@ -26,10 +27,44 @@ int main() {
 	}
 
 	shouldBe_Int(SetContains(set, "NotThere"), 0);
+
+	// test edge cases
 	shouldBe_Int(SetContains(set, NULL), 0);
 	shouldBe_Int(SetContains(NULL, "NotThere"), 0);
 
 	PrintSet(set, &printStr);
+
+	/*
+	 * Test SetToList
+	 */
+	List * list = SetToList(set);
+	assert(list);
+	shouldBe_Int(size, ListSize(list));
+
+	printf("List: ");
+	PrintList(list, &printStr);
+
+	ListIterator * li = MakeListIterator(list);
+	void * curListEntry = GetCurrentFromIterator(li);
+	while (curListEntry) {
+		printf("Listed entry: %s\n", curListEntry);
+		printf("Size of curListEntry %d, size of void * %d, sizeof char * %d\n", sizeof(curListEntry), sizeof(void *), sizeof(char *));
+		printf("Set contains return value for current: %d\n", SetContains(set, curListEntry));
+		shouldBe_Int(SetContains(set, curListEntry), 1);
+		curListEntry = AdvanceAndGetFromIterator(li);
+	}
+	DestroyListIterator(li);
+
+	shouldBe_Int(ListContains(list, &strIsEqual, "NotThere"), 0);
+
+	DestroyList(list);
+
+	/*
+	 * TODO: Test Union and Intersection functions
+	 */
+
+	fprintf(stderr, "TODO: IMPLEMENT UNION UNIT TESTS!!!\n");
+	fprintf(stderr, "TODO: IMPLEMENT INTERSECTION UNIT TESTS!!!\n");
 
 	/*
 	 * Test Removal
@@ -48,4 +83,5 @@ int main() {
 	DestroySet(set);
 
 	printf("Set Tests Success!\n");
+	return 0;
 }

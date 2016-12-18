@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "../TestingHelper/TestingHelper.h"
 #include "../AbstractHelpers/StringHelper.h"
+#include "../AbstractHelpers/IntHelper.h"
 #include "HashTable.h"
 
 int main() {
@@ -38,6 +39,9 @@ int main() {
 	shouldBe_Int(HashTableContains(hashtable, "ii"), 1);
 	shouldBe_Int(HashTableContains(hashtable, "not here"), 0);
 
+	shouldBe_Int(HashTableContains(NULL, "aa"), 0);
+	shouldBe_Int(HashTableContains(hashtable, NULL), 0);
+
 	char * extracted = ExtractFromHashTable(hashtable, "aa");
 	shouldBe_Str(extracted, "aa");
 	free(extracted);
@@ -57,15 +61,25 @@ int main() {
 	free(extracted);
 
 	/* 
-	 * test copy, toList, apply and iterator functions
+	 * test copy, structural copy, toList, apply and iterator functions
 	 */
 
 	HashTable * copy = CopyHashTable(hashtable);
+	HashTable * structuralCopy = CopyHashTableStructure(hashtable);
+
 	printf("original --\n");
 	PrintHashTable(hashtable, &printStr);
+
 	printf("copy --\n");
 	PrintHashTable(copy, &printStr);
 	shouldBe_Int(HashTableSize(copy),HashTableSize(hashtable));
+
+	printf("structural copy --\n");
+	shouldBe_Int(CompareHashTableStructure(hashtable, structuralCopy), 1);
+	shouldBe_Int(HashTableSize(structuralCopy), 0);
+	AddToHashTable(structuralCopy, "should stick!");
+	PrintHashTable(structuralCopy, &printStr);
+	DestroyHashTable(structuralCopy);
 
 	List * contents = HashTableToList(hashtable);
 	shouldBe_Int(ListSize(contents), HashTableSize(hashtable));
@@ -97,15 +111,37 @@ int main() {
 	DestroyHashTable(copy);
 
 	/*
+	 * test structural comparison and copying
+	 */
+
+	HashTable * strTable = NewHashTable(&myStrdup, &safeFree, &hashPJW, &strIsEqual, 10);
+	HashTable * strTable2 = NewHashTable(&myStrdup, &safeFree, &hashPJW, &strIsEqual, 10);
+
+	HashTable * intTable1 = NewHashTable(&myIntDup, &safeFree, &hashPJW, &strIsEqual, 10);
+	HashTable * intTable2 = NewHashTable(&myStrdup, &free, &hashPJW, &strIsEqual, 10);
+	HashTable * intTable3 = NewHashTable(&myStrdup, &safeFree, &hashPJW, &myIntCompare, 10);
+
+	shouldBe_Int(CompareHashTableStructure(strTable, strTable2), 1);
+	shouldBe_Int(CompareHashTableStructure(strTable, intTable1), 0);
+	shouldBe_Int(CompareHashTableStructure(strTable, intTable2), 0);
+	shouldBe_Int(CompareHashTableStructure(strTable, intTable3), 0);
+
+	DestroyHashTable(strTable);
+	DestroyHashTable(strTable2);
+	DestroyHashTable(intTable1);
+	DestroyHashTable(intTable2);
+	DestroyHashTable(intTable3);
+
+	/*
 	 * clean up  
 	 */
 
 	ClearHashTable(hashtable);
 	shouldBe_Int(HashTableSize(hashtable), 0);
+	printf("should be empty --\n");
 	PrintHashTable(hashtable, &printStr);
 
 	DestroyHashTable(hashtable);
-
 
 	printf("HashTable Tests Pass!\n");
 	return 0;

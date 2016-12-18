@@ -8,7 +8,7 @@ void * myIntDup(void * integer);
 int myIntIsEqual(void * testInteger, void * targetInteger);
 
 // NULL is considered LEAST value possible
-int myIntCompare(const void * arg1, const void * arg2);
+int myIntCompare(void * arg1, void * arg2);
 
 void printInt(void * integer);
 void printIntList(List * list);

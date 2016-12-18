@@ -69,7 +69,7 @@ static int _RemoveFromBucket(_Bucket * bucket, AreEqualFunc judger, void * key) 
 
 static int _BucketContains(_Bucket * bucket, AreEqualFunc judger, void * key) {
 	if (!bucket || !judger)
-		return -1;
+		return 0;
 	return ListContains(bucket->entries, judger, key);
 }
 
@@ -163,7 +163,7 @@ static List * _HashTableToList(_HashTable * hashtable) {
 		return NULL;
 	List * list = NewList(hashtable->copier, hashtable->destroyer);
 	for (int i = 0; i < hashtable->totalBuckets; i++) {
-		list = CatLists(list,CopyList(_GetBucketList(hashtable->buckets[i])));
+		list = CatLists(list, CopyList(_GetBucketList(hashtable->buckets[i])));
 	}
 	return list;
 }
@@ -243,8 +243,8 @@ int CompareHashTableStructure(HashTable * h1, HashTable * h2) {
 	if (!h1 || !h2)
 		return 0;
 
-	_HashTable table1 = (_HashTable *)h1;
-	_HashTable table2 = (_HashTable *)h2;
+	_HashTable * table1 = (_HashTable *)h1;
+	_HashTable * table2 = (_HashTable *)h2;
 
 	return 
 		(table1->copier != table2->copier) ? 0 :
@@ -254,26 +254,26 @@ int CompareHashTableStructure(HashTable * h1, HashTable * h2) {
 		1;
 }
 
-int HashTableSize(HashTable * HashTable) {
-	if (!HashTable)
+int HashTableSize(HashTable * hashtable) {
+	if (!hashtable)
 		return -1;
-	_HashTable * h = (_HashTable *)HashTable;
+	_HashTable * h = (_HashTable *)hashtable;
 	return h->size;
 }
 
-void * AddToHashTable(HashTable * HashTable, void * element) {
-	if (!HashTable || !element)
+void * AddToHashTable(HashTable * hashtable, void * element) {
+	if (!hashtable || !element)
 		return NULL;
 
-	_HashTable * h = (_HashTable *)HashTable;
+	_HashTable * h = (_HashTable *)hashtable;
 	h->size++;
 	return _AddToBucket(_HashToBucket(h, element), element);
 }
 
-void * ExtractFromHashTable(HashTable * HashTable, void * key) {
-	if (!HashTable)
+void * ExtractFromHashTable(HashTable * hashtable, void * key) {
+	if (!hashtable)
 		return NULL;
-	_HashTable * h = (_HashTable *)HashTable;
+	_HashTable * h = (_HashTable *)hashtable;
 	void * extracted = _ExtractFromBucket(_HashToBucket(h, key), h->judger, key);
 	if (extracted != NULL) {
 		h->size--;
@@ -281,27 +281,27 @@ void * ExtractFromHashTable(HashTable * HashTable, void * key) {
 	return extracted;
 }
 
-int RemoveFromHashTable(HashTable * HashTable, void * key) {
-	if (!HashTable)
+int RemoveFromHashTable(HashTable * hashtable, void * key) {
+	if (!hashtable)
 		return -1;
-	_HashTable * h = (_HashTable *)HashTable;
+	_HashTable * h = (_HashTable *)hashtable;
 	int removed = _RemoveFromBucket(_HashToBucket(h, key), h->judger, key);
 	h->size -= removed;
 	return removed;
 }
 
-void ClearHashTable(HashTable * HashTable) {
-	if (!HashTable)
+void ClearHashTable(HashTable * hashtable) {
+	if (!hashtable)
 		return;
-	_HashTable * h = (_HashTable *)HashTable;
+	_HashTable * h = (_HashTable *)hashtable;
 	h->size = 0;
 	_ApplyToAllLists(h, &ClearList);
 }
 
-int HashTableContains(HashTable * HashTable, void * key) {
-	if (!HashTable)
-		return -1;
-	_HashTable * h = (_HashTable *)HashTable;
+int HashTableContains(HashTable * hashtable, void * key) {
+	if (!hashtable || !key)
+		return 0;
+	_HashTable * h = (_HashTable *)hashtable;
 	return _BucketContains(_HashToBucket(h, key), h->judger, key);
 }
 
@@ -401,14 +401,14 @@ HashTable * CopyHashTableStructure(HashTable * hashtable) {
 	return (HashTable *)copy;
 }
 
-void PrintHashTable(HashTable * HashTable, ApplyFunc printer) {
-	if (!HashTable || !printer)
+void PrintHashTable(HashTable * hashtable, ApplyFunc printer) {
+	if (!hashtable || !printer)
 		return;
-	_HashTable * h = (_HashTable *)HashTable;
+	_HashTable * h = (_HashTable *)hashtable;
 	printf("HashTable:\n");
 	for (int i = 0; i < h->totalBuckets; i++) {
 		if (ListSize(h->buckets[i]->entries) > 0) {
-			printf("\tBucket - %d : ", i);
+			printf("\tBucket_%d : ", i);
 			_PrintBucket(h->buckets[i], printer);
 		}
 	}
