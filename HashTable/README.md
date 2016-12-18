@@ -4,7 +4,7 @@ This hashtable structure allows you to store abstract memory references that wil
 ## How Do I Use It?
 `./HashTableTest` has examples of how to make, add to, delete from and query a HashTable. The cool thing about this HashTable is that it acts like a simplified List data structure with better access speeds. This HashTable also contains a useful feature where a user can iterate over all the contents of the HashTable exactly as you'd iterate over a list.
 
-* Creation: `HashTable * hashtable = HashTable * NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int hashSlots);
+* Creation: `HashTable * hashtable = NewHashTable(CopyFunc cf, HashFunc hf, AreEqualFunc aef, int hashSlots);
 ;` 
 	* where `cf` a pointer to a function that returns a new allocated copy of the passed memory reference
 	* where `hf` is a pointer to a hashfunction that takes an abstract reference and returns an integer hash
