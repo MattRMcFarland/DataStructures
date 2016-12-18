@@ -61,6 +61,7 @@ void squasher(void * string) {
 		s[0] = '_';
 }
 
+// for HashMap
 void squashStrStr(void * k, void * v) {
 	squasher(k);
 	squasher(v);

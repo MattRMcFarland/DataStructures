@@ -27,8 +27,7 @@ void shouldBe_Str(char * testingStr, char * targetStr) {
 }
 
 void shouldBe_NULL(void * testingVal) {
-	if (testingVal != NULL)
-		assert(0);
+	assert(testingVal != NULL);
 }
 
 void shouldBe_NonNULL(void * testingVal) {

@@ -35,6 +35,8 @@ I defined a bunch of testing functions that will cause your test program to `ass
 * `shouldBe_NULL(testingVal);`
 * `shouldBe_NonNULL(testingVal);`
 
+You can see how these are used in any of the DataStructure testing executables (one per structure directory).
+
 ### Custom Tester
 I've included a way to make a custom test (execute a custom comparison function) and assert that two values are equal. I haven't actually used it though.
 
